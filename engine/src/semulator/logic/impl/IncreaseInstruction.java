@@ -14,7 +14,7 @@ public class IncreaseInstruction implements SInstruction {
 
     @Override
     public String getName() {
-        return "";
+        return name;
     }
     @Override
     public int cycles(){
