@@ -1,4 +1,4 @@
-package semulator.logic.model;
+package semulator.logic.API;
 
 public interface SInstruction {
 
