@@ -2,14 +2,15 @@ package semulator.logic.instruction;
 
 import semulator.logic.api.InstructionData;
 import semulator.logic.label.Label;
+import semulator.logic.variable.Variable;
 
 public class NoOpInstruction extends AbstractInstruction {
 
-    public NoOpInstruction() {
-        super(InstructionData.NO_OP);
+    public NoOpInstruction(Variable variable) {
+        super(InstructionData.NO_OP, variable);
     }
-    public NoOpInstruction(Label label) {
-        super(InstructionData.NO_OP,label);
+    public NoOpInstruction(Variable variable, Label label) {
+        super(InstructionData.NO_OP, variable, label);
     }
 
 

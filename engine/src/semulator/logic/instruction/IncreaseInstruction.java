@@ -2,14 +2,15 @@ package semulator.logic.instruction;
 
 import semulator.logic.api.InstructionData;
 import semulator.logic.label.Label;
+import semulator.logic.variable.Variable;
 
 public class IncreaseInstruction extends  AbstractInstruction {
 
-    public IncreaseInstruction() {
-        super(InstructionData.INCREASE);
+    public IncreaseInstruction(Variable variable) {
+        super(InstructionData.INCREASE, variable);
     }
-    public IncreaseInstruction(Label label) {
-        super(InstructionData.INCREASE,label);
+    public IncreaseInstruction(Variable variable, Label label) {
+        super(InstructionData.INCREASE, variable, label);
     }
 
     @Override
