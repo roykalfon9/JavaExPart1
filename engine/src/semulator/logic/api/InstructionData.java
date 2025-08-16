@@ -1,4 +1,4 @@
-package semulator.logic.API;
+package semulator.logic.api;
 
 public enum InstructionData {
 

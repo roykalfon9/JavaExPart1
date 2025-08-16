@@ -1,6 +1,6 @@
 package semulator.logic.instruction;
 
-import semulator.logic.API.InstructionData;
+import semulator.logic.api.InstructionData;
 
 public class NoOpInstruction extends AbstractInstruction {
 
