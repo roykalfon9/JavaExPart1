@@ -32,6 +32,6 @@ public abstract class AbstractInstruction implements SInstruction {
 
     @Override
     public Label getLabel() {
-
+        return  label;
     }
 }
