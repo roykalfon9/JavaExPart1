@@ -22,9 +22,6 @@ public class JumpNotZeroInstruction extends AbstractInstruction {
 
     @Override
     public Label execute(ExecutionContext context) {
-        if (context.getVariablevalue(this.getVariable()) == 0 )
-            return jumpTargetIfTrue;
-        return FixedLabel.EMPTY;
-
+        return (context.getVariablevalue(this.getVariable()) != 0) ? jumpTargetIfTrue : FixedLabel.EMPTY;
     }
 }

@@ -14,7 +14,7 @@ public class ExecutionContextImpl implements ExecutionContext {
 
     @Override
     public long getVariablevalue(Variable v) {
-        return VariableState.get(v);
+        return VariableState.getOrDefault(v, 0L);
     }
 
     @Override

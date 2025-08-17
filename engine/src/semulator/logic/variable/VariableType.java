@@ -16,7 +16,7 @@ public enum VariableType {
     WORK{
         @Override
         public String getVariableRepresentation(int number){
-            return ("y" + number);
+            return ("z" + number);
         }
     };
 
