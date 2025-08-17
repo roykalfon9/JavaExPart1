@@ -1,6 +1,8 @@
 package semulator.logic.instruction;
 
 import semulator.logic.api.InstructionData;
+import semulator.logic.execution.ExecutionContext;
+import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
 import semulator.logic.variable.Variable;
 
@@ -15,8 +17,8 @@ public class NoOpInstruction extends AbstractInstruction {
 
 
     @Override
-    public void execute() {
-
+    public Label execute(ExecutionContext context) {
+        return FixedLabel.EMPTY;
     }
 
 }
