@@ -1,16 +1,19 @@
 package semulator.logic.instruction;
 
 import semulator.logic.api.InstructionData;
-import semulator.logic.api.SInstruction;
+import semulator.logic.api.Sinstruction;
 import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
+import semulator.logic.program.Sprogram;
+import semulator.logic.program.SprogramImpl;
 import semulator.logic.variable.Variable;
 
-public abstract class AbstractInstruction implements SInstruction {
+public abstract class AbstractInstruction implements Sinstruction {
 
     private final InstructionData instructionData;
     private final Label label;
     private final Variable variable;
+    private Sprogram expandProgram;
 
     public AbstractInstruction(InstructionData instructionData, Variable variable) {
      this(instructionData, variable, FixedLabel.EMPTY);
@@ -20,6 +23,7 @@ public abstract class AbstractInstruction implements SInstruction {
         this.instructionData = instructionData;
         this.label = label;
         this.variable = variable;
+        this.expandProgram = new SprogramImpl("expand");
     }
 
 
@@ -41,5 +45,14 @@ public abstract class AbstractInstruction implements SInstruction {
     @Override
     public Variable getVariable() {
         return  variable;
+    }
+
+    @Override
+    public String isBasic() {
+        return instructionData.isBasic();
+    }
+
+    public Sprogram getExpandProgram() {
+        return expandProgram;
     }
 }

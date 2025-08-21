@@ -18,7 +18,8 @@ public class IncreaseInstruction extends  AbstractInstruction {
     @Override
     public Label execute(ExecutionContext context) {
         Long varValue = context.getVariablevalue(this.getVariable());
-        context.updateVariable(this.getVariable(), varValue + 1);
+        varValue++;
+        context.updateVariable(this.getVariable(), varValue);
         return FixedLabel.EMPTY;
     }
 }

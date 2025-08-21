@@ -1,6 +1,7 @@
 package semulator.logic.execution;
 
-import semulator.logic.api.SInstruction;
+import semulator.logic.api.Sinstruction;
+import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
 import semulator.logic.program.Sprogram;
 import semulator.logic.variable.Variable;
@@ -30,11 +31,24 @@ public class ProgramExecutorImpl implements ProgramExecuter{
 
         ExecutionContext context = new ExecutionContextImpl(programVariableState);
 
-        SInstruction currentInstruction = program.getInstructions().get(0);
+        Integer instructionIndex = 0;
         Label nextLabe;
+
         do{
+            Sinstruction currentInstruction = program.getInstructions().get(instructionIndex);
             nextLabe = currentInstruction.execute(context);
-        }
+
+            if (nextLabe == FixedLabel.EMPTY){
+                instructionIndex++;
+                // next instruction
+            }
+            else if (nextLabe != FixedLabel.EXIT){
+                instructionIndex = program.findInstructionIndexByLabel(nextLabe);
+                // do find instruction by label in program
+            }
+        } while (nextLabe != FixedLabel.EXIT || instructionIndex < program.getInstructions().size()) ;
+
+        return context.getVariablevalue(Variable.RESULT);
     }
 
     @Override

@@ -6,13 +6,13 @@ import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
 import semulator.logic.variable.Variable;
 
-public class NoOpInstruction extends AbstractInstruction {
+public class NeutralInstruction extends AbstractInstruction {
 
-    public NoOpInstruction(Variable variable) {
-        super(InstructionData.NO_OP, variable);
+    public NeutralInstruction(Variable variable) {
+        super(InstructionData.NEUTRAL, variable);
     }
-    public NoOpInstruction(Variable variable, Label label) {
-        super(InstructionData.NO_OP, variable, label);
+    public NeutralInstruction(Variable variable, Label label) {
+        super(InstructionData.NEUTRAL, variable, label);
     }
 
 
