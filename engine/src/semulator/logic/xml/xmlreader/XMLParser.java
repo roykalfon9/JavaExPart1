@@ -1,6 +1,5 @@
 package semulator.logic.xml.xmlreader;
 
-
 import org.w3c.dom.Element;
 import semulator.logic.api.Sinstruction;
 import semulator.logic.execution.ExecutionContext;
@@ -17,6 +16,8 @@ import semulator.logic.variable.Variable;
 import semulator.logic.variable.VariableImpl;
 import semulator.logic.variable.VariableType;
 import semulator.logic.xml.schema.SInstruction;
+import semulator.logic.xml.schema.SInstructionArgument;
+import semulator.logic.xml.schema.SInstructionArguments;
 import semulator.logic.xml.schema.SProgram;
 
 import javax.xml.bind.JAXBContext;
@@ -36,8 +37,7 @@ public class XMLParser implements IXMLParser {
     private final static String JAVX_XML_PACKAGE_NAME = "semulator.logic.xml.schema";
 
     @Override
-    public Sprogram loadProgramFromXML(String filePath) throws Exception
-    {
+    public Sprogram loadProgramFromXML(String filePath) throws Exception {
         validateXmlFilePath (filePath);
 
         SProgram XmlProgram = xmlToObject(filePath);
@@ -58,28 +58,24 @@ public class XMLParser implements IXMLParser {
         return program;
     }
 
-    private SProgram xmlToObject (String filePath) throws FileNotFoundException, JAXBException
-    {
+    private SProgram xmlToObject (String filePath) throws FileNotFoundException, JAXBException {
         SProgram program = null;
         try {
             InputStream inputStream = new FileInputStream(new File(filePath));
             program = deserializeFrom(inputStream);
-        } catch (JAXBException | FileNotFoundException e)
-        {
+        } catch (JAXBException | FileNotFoundException e) {
             e.printStackTrace();
         }
         return program;
     }
 
-    private static SProgram deserializeFrom(InputStream in) throws JAXBException
-    {
+    private static SProgram deserializeFrom(InputStream in) throws JAXBException {
         JAXBContext jc = JAXBContext.newInstance(JAVX_XML_PACKAGE_NAME);
         Unmarshaller v = jc.createUnmarshaller();
         return (SProgram) v.unmarshal(in);
     }
 
-    private Sinstruction mapXmlInstructionToDomain(SInstruction xmlIns)
-    {
+    private Sinstruction mapXmlInstructionToDomain(SInstruction xmlIns) {
         Sinstruction PIns = null;
 
         switch (xmlIns.getName()) {
@@ -88,7 +84,6 @@ public class XMLParser implements IXMLParser {
             {
                 String PvarName = xmlIns.getSVariable();
                 Variable Pvar = analyzeVariable(PvarName);
-
 
                 String PlabelName = xmlIns.getSLabel();
                 Label Plabel;
@@ -104,7 +99,8 @@ public class XMLParser implements IXMLParser {
                 }
                 else
                 {
-                    Plabel = new LabelImp(PlabelName.charAt(1));
+                    int n = Integer.parseInt(PlabelName.substring(1));
+                    Plabel = new LabelImp(n);
                     PIns = new IncreaseInstruction(Pvar,Plabel);
                 }
 
@@ -119,7 +115,7 @@ public class XMLParser implements IXMLParser {
                 Label Plabel;
                 String PlabelName = xmlIns.getSLabel();
 
-                if (PlabelName.isEmpty())
+                if (PlabelName == null || PlabelName.isEmpty())
                 {
                     PIns = new DecreaseInstruction(Pvar);
                 }
@@ -130,7 +126,8 @@ public class XMLParser implements IXMLParser {
                 }
                 else
                 {
-                    Plabel = new LabelImp(PlabelName.charAt(1));
+                    int n = Integer.parseInt(PlabelName.substring(1));
+                    Plabel = new LabelImp(n);
                     PIns = new DecreaseInstruction(Pvar,Plabel);
                 }
 
@@ -145,7 +142,7 @@ public class XMLParser implements IXMLParser {
                 Label Plabel;
                 String PlabelName = xmlIns.getSLabel();
 
-                if (PlabelName.isEmpty())
+                if (PlabelName == null || PlabelName.isEmpty())
                 {
                     PIns = new ZeroVariableInstruction(Pvar);
                 }
@@ -156,7 +153,8 @@ public class XMLParser implements IXMLParser {
                 }
                 else
                 {
-                    Plabel = new LabelImp(PlabelName.charAt(1));
+                    int n = Integer.parseInt(PlabelName.substring(1));
+                    Plabel = new LabelImp(n);
                     PIns = new ZeroVariableInstruction(Pvar,Plabel);
                 }
                 return PIns;
@@ -166,22 +164,26 @@ public class XMLParser implements IXMLParser {
                 String PvarName = xmlIns.getSVariable();
                 Variable Pvar = analyzeVariable(PvarName);
 
-                String PArgumentLabelName = xmlIns.getSInstructionArguments().getSInstructionArgument().getFirst().getValue();
+                // תיקון קריטי: יעד מגיע מה-value, ושימוש ב-get(0)
+                SInstructionArguments argContainer = xmlIns.getSInstructionArguments();
+                SInstructionArgument firstArg = argContainer.getSInstructionArgument().get(0);
+                String PArgumentLabelName = firstArg.getValue();
                 Label PArgumentLabel;
 
                 if  (PArgumentLabelName.toUpperCase().equals("EXIT"))
                 {
-                     PArgumentLabel = FixedLabel.EXIT;
+                    PArgumentLabel = FixedLabel.EXIT;
                 }
                 else
                 {
-                     PArgumentLabel = new LabelImp(PArgumentLabelName.charAt(1));
+                    int n = Integer.parseInt(PArgumentLabelName.substring(1));
+                    PArgumentLabel = new LabelImp(n);
                 }
 
                 String PlabelName = xmlIns.getSLabel();
                 Label Plabel;
 
-                if (PlabelName.isEmpty())
+                if (PlabelName == null || PlabelName.isEmpty())
                 {
                     PIns = new JumpNotZeroInstruction(Pvar, PArgumentLabel);
                 }
@@ -192,7 +194,8 @@ public class XMLParser implements IXMLParser {
                 }
                 else
                 {
-                    Plabel = new LabelImp(PlabelName.charAt(1));
+                    int n = Integer.parseInt(PlabelName.substring(1));
+                    Plabel = new LabelImp(n);
                     PIns = new JumpNotZeroInstruction(Pvar,PArgumentLabel,Plabel);
                 }
                 return PIns;
@@ -232,22 +235,24 @@ public class XMLParser implements IXMLParser {
                 throw new UnsupportedOperationException("Unrecognized instruction name: '" + xmlIns.getName() + "'");
         }
     }
-     private Variable analyzeVariable (String PvarName)
-     {
+    private Variable analyzeVariable (String PvarName)
+    {
+        String up = PvarName.toUpperCase();
+        int num = Integer.parseInt(up.substring(1)); // תיקון קריטי: לא charAt(1)
 
-         if (PvarName.toUpperCase().charAt(0) == 'X')
-         {
-             return new VariableImpl(VariableType.INPUT,PvarName.charAt(1));
-         }
-         else if (PvarName.toUpperCase().charAt(0) == 'Y')
-         {
-             return new VariableImpl(VariableType.RESULT,PvarName.charAt(1));
-         }
-         else
-         {
-             return new VariableImpl(VariableType.WORK,PvarName.charAt(1));
-         }
-     }
+        if (up.charAt(0) == 'X')
+        {
+            return new VariableImpl(VariableType.INPUT, num);
+        }
+        else if (up.charAt(0) == 'Y')
+        {
+            return new VariableImpl(VariableType.RESULT, num);
+        }
+        else
+        {
+            return new VariableImpl(VariableType.WORK, num);
+        }
+    }
     private static void validateXmlFilePath(String filePath) throws Exception {
         if (filePath == null || filePath.isBlank()) {
             throw new IllegalArgumentException("Path is null/blank.");
