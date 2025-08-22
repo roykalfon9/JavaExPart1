@@ -15,5 +15,6 @@ public interface Sprogram {
     boolean validate();
     int calculateMaxDegree();
     int calculateCycle();
-    StringBuilder  getInputVariable();
+    String stringInputVariable();
+    void setNumberInstructions();
 }

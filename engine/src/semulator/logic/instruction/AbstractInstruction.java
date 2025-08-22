@@ -11,9 +11,10 @@ import semulator.logic.variable.Variable;
 public abstract class AbstractInstruction implements Sinstruction {
 
     private final InstructionData instructionData;
+    private int instructionNumber;
     private final Label label;
     private final Variable variable;
-    private Sprogram expandProgram;
+    private Sprogram instructionProgram;
     private Sinstruction parentInstruction;
 
     public AbstractInstruction(InstructionData instructionData, Variable variable)
@@ -22,15 +23,15 @@ public abstract class AbstractInstruction implements Sinstruction {
     }
     public AbstractInstruction(InstructionData instructionData, Variable variable, Label label)
     {
-        this(instructionData, variable, label,null);
+        this(instructionData, variable,null, label);
     }
 
-    public AbstractInstruction(InstructionData instructionData, Variable variable, Label label,Sinstruction parentInstruction )
+    public AbstractInstruction(InstructionData instructionData, Variable variable, Sinstruction parentInstruction, Label label )
     {
         this.instructionData = instructionData;
         this.label = label;
         this.variable = variable;
-        this.expandProgram = new SprogramImpl("expand");
+        this.instructionProgram = new SprogramImpl("expand");
         this.parentInstruction = parentInstruction;
 
 
@@ -62,12 +63,20 @@ public abstract class AbstractInstruction implements Sinstruction {
     }
 
     @Override
-    public Sprogram getExpandProgram() {
-        return expandProgram;
+    public Sprogram getInstructionProgram() {
+        return instructionProgram;
     }
 
     @Override
-    public Sinstruction getparentInstruction(){ return parentInstruction;}
+    public Sinstruction getParentInstruction(){ return parentInstruction;}
 
+    @Override
+    public void setInstructionNumber(int instructionNumber) {
+        this.instructionNumber = instructionNumber;
+    }
 
+    @Override
+    public int getInstructionNumber() {
+        return instructionNumber;
+    }
 }

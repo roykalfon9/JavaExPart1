@@ -13,6 +13,9 @@ int cycles();
 Label getLabel();
 Variable getVariable();
 String isBasic();
-Sprogram getExpandProgram();
-Sinstruction getparentInstruction();
+Sprogram getInstructionProgram();
+Sinstruction getParentInstruction();
+void setInstructionNumber(int instructionNumber);
+int getInstructionNumber();
+String toDisplayString();
 }

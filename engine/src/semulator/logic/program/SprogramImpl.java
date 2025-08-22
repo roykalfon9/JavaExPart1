@@ -4,11 +4,10 @@ import semulator.logic.api.Sinstruction;
 import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
 import semulator.logic.label.LabelImp;
+import semulator.logic.variable.Variable;
 import semulator.logic.variable.VariableType;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 public class SprogramImpl implements Sprogram {
 
@@ -38,35 +37,15 @@ public class SprogramImpl implements Sprogram {
     @Override
     public int findInstructionIndexByLabel(Label label)
     {
-        for (int i = 0; i < instructions.size(); i++)
-        {
-            Label currentLabel = instructions.get(i).getLabel();
-
-            if (label instanceof FixedLabel && currentLabel instanceof FixedLabel)
-            {
-                if (label.equals(currentLabel))
-                {
-                    return i;
-                }
-            }
-            else if (label instanceof LabelImp && currentLabel instanceof LabelImp)
-            {
-                if (label.getLabelRepresentation().equals(currentLabel.getLabelRepresentation()))
-                {
-                    return i;
-                }
-            }
-            else
-            {
-                throw new NoSuchElementException("No such label found");
+        if (label == null) throw new IllegalArgumentException("label is null");
+        for (int i = 0; i < instructions.size(); i++) {
+            Label current = instructions.get(i).getLabel();
+            if (current != null && label.equals(current)) {
+                return i;
             }
         }
-        return -1;
+        throw new NoSuchElementException("No instruction with label: " + label.getLabelRepresentation());
     }
-
-
-
-
 
     @Override
     public boolean validate() {
@@ -87,14 +66,29 @@ public class SprogramImpl implements Sprogram {
     }
 
     @Override
-    public StringBuilder getInputVariable() {
-        StringBuilder inputVariable = new StringBuilder();
-        for  (int i = 0; i < instructions.size(); i++)
-        {
-            if(instructions.get(i).getVariable() instanceof VariableType && instructions.get(i).getVariable().equals(VariableType.INPUT))
-             inputVariable.append(instructions.get(i).getVariable().getRepresentation());
-             inputVariable.append(" , ");
+    public String stringInputVariable() {
+        StringJoiner joiner = new StringJoiner(", ");
+        LinkedHashSet<String> seen = new LinkedHashSet<>();
+
+        for (Sinstruction instruction : instructions) {
+            if (instruction == null || instruction.getVariable() == null) continue;
+            Variable v = instruction.getVariable();
+            if (v.getType() == VariableType.INPUT) {
+                String token = v.getRepresentation();
+                if (seen.add(token)) {
+                    joiner.add(token);
+                }
+            }
         }
-        return inputVariable;
+        return joiner.toString();
+    }
+
+    @Override
+    public void setNumberInstructions()
+    {
+        for(int i=0;i<this.instructions.size();i++)
+        {
+            this.instructions.get(i).setInstructionNumber(i+1);
+        }
     }
 }

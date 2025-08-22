@@ -21,6 +21,7 @@ public class ProgramExecutorImpl implements ProgramExecuter{
     public ProgramExecutorImpl(Sprogram program){
         this.program = program;
         insertRestartVariables();
+        this.program.setNumberInstructions();
     }
 
     @Override

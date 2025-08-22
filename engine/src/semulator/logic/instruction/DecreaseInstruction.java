@@ -17,9 +17,9 @@ public class DecreaseInstruction extends AbstractInstruction{
     {
         super(InstructionData.DECREASE, variable, label);
     }
-    public DecreaseInstruction(Variable variable, Label label, Sinstruction parentInstruction)
+    public DecreaseInstruction(Variable variable, Sinstruction parentInstruction, Label label)
     {
-        super(InstructionData.DECREASE, variable, label, parentInstruction);
+        super(InstructionData.DECREASE, variable,parentInstruction, label);
     }
 
     @Override
@@ -27,5 +27,17 @@ public class DecreaseInstruction extends AbstractInstruction{
         Long varValue = context.getVariablevalue(this.getVariable());
         context.updateVariable(this.getVariable(), varValue - 1);
         return FixedLabel.EMPTY;
+    }
+
+    @Override
+     public String toDisplayString()
+    {
+        return String.format("#%d (%s) [ %-5s ] %s <- %s - 1 (%d)",
+                this.getInstructionNumber(),
+                this.isBasic(),
+                this.getLabel().getLabelRepresentation(),
+                this.getVariable().getRepresentation().toLowerCase(),
+                this.getVariable().getRepresentation().toLowerCase(),
+                this.cycles());
     }
 }

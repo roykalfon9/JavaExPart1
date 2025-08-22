@@ -11,7 +11,7 @@ public enum FixedLabel implements Label {
     EMPTY{
         @Override
         public String getLabelRepresentation() {
-            return "";
+            return "  ";
         }
     };
 
