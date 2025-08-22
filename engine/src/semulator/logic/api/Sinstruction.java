@@ -2,6 +2,7 @@ package semulator.logic.api;
 
 import semulator.logic.execution.ExecutionContext;
 import semulator.logic.label.Label;
+import semulator.logic.program.Sprogram;
 import semulator.logic.variable.Variable;
 
 public interface Sinstruction {
@@ -12,4 +13,6 @@ int cycles();
 Label getLabel();
 Variable getVariable();
 String isBasic();
+Sprogram getExpandProgram();
+Sinstruction getparentInstruction();
 }

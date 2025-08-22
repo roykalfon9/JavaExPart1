@@ -3,10 +3,7 @@ package semulator.logic.xml.xmlreader;
 import org.w3c.dom.Element;
 import semulator.logic.api.Sinstruction;
 import semulator.logic.execution.ExecutionContext;
-import semulator.logic.instruction.DecreaseInstruction;
-import semulator.logic.instruction.IncreaseInstruction;
-import semulator.logic.instruction.JumpNotZeroInstruction;
-import semulator.logic.instruction.ZeroVariableInstruction;
+import semulator.logic.instruction.*;
 import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
 import semulator.logic.label.LabelImp;
@@ -164,7 +161,6 @@ public class XMLParser implements IXMLParser {
                 String PvarName = xmlIns.getSVariable();
                 Variable Pvar = analyzeVariable(PvarName);
 
-                // תיקון קריטי: יעד מגיע מה-value, ושימוש ב-get(0)
                 SInstructionArguments argContainer = xmlIns.getSInstructionArguments();
                 SInstructionArgument firstArg = argContainer.getSInstructionArgument().get(0);
                 String PArgumentLabelName = firstArg.getValue();
@@ -201,12 +197,34 @@ public class XMLParser implements IXMLParser {
                 return PIns;
 
             }
-            /*
             case "NEUTRAL":
             {
+                String PvarName = xmlIns.getSVariable();
+                Variable Pvar = analyzeVariable(PvarName);
+
+                Label Plabel;
+                String PlabelName = xmlIns.getSLabel();
+
+                if (PlabelName == null || PlabelName.isEmpty())
+                {
+                    PIns = new NeutralInstruction(Pvar);
+                }
+                else if (PlabelName.toUpperCase().equals("EXIT"))
+                {
+                    Plabel = FixedLabel.EXIT;
+                    PIns = new NeutralInstruction(Pvar,Plabel);
+                }
+                else
+                {
+                    int n = Integer.parseInt(PlabelName.substring(1));
+                    Plabel = new LabelImp(n);
+                    PIns = new NeutralInstruction(Pvar,Plabel);
+                }
+
+                return PIns;
 
             }
-
+/*
             case "JUMP_ZERO":
             {
 

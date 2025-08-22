@@ -9,30 +9,43 @@ import semulator.logic.variable.VariableImpl;
 import semulator.logic.variable.VariableType;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class ProgramExecutorImpl implements ProgramExecuter{
 
     private final Sprogram program;
-    private Map<Variable, Long> programVariableState =  new HashMap<>();
+    private Map<Variable, Long> programVariableState =  new LinkedHashMap<>();
+
 
     public ProgramExecutorImpl(Sprogram program){
         this.program = program;
+        insertRestartVariables();
     }
 
     @Override
     public long run(Long... input) {
 
-        for (int i = 0; i < input.length; i++) {
-            programVariableState.put(new VariableImpl(VariableType.INPUT, i + 1), input[i]);
+        insertRestartVariables();
+        if (input == null) input = new Long[0];
+
+        int j = 0;
+        for (Variable v : programVariableState.keySet()) {
+            if (v.getType() == VariableType.INPUT && j < input.length ) {
+                programVariableState.put(v, input[j]);
+                j++;
+            }
         }
-        programVariableState.put(Variable.RESULT, 0L);
 
 
         ExecutionContext context = new ExecutionContextImpl(programVariableState);
 
         Integer instructionIndex = 0;
         Label nextLabe;
+
+        if (program.getInstructions().isEmpty()) {
+            return context.getVariablevalue(Variable.RESULT);
+        }
 
         do{
             Sinstruction currentInstruction = program.getInstructions().get(instructionIndex);
@@ -46,7 +59,8 @@ public class ProgramExecutorImpl implements ProgramExecuter{
                 instructionIndex = program.findInstructionIndexByLabel(nextLabe);
                 // do find instruction by label in program
             }
-        } while (nextLabe != FixedLabel.EXIT || instructionIndex < program.getInstructions().size()) ;
+
+        } while (nextLabe != FixedLabel.EXIT && instructionIndex < program.getInstructions().size()) ;
 
         return context.getVariablevalue(Variable.RESULT);
     }
@@ -54,5 +68,15 @@ public class ProgramExecutorImpl implements ProgramExecuter{
     @Override
     public Map<Variable, Long> VariableState() {
         return programVariableState;
+    }
+
+    private void insertRestartVariables()
+    {
+        programVariableState.clear();
+        for (int i = 0; i < program.getInstructions().size(); i++)
+        {
+            programVariableState.put(program.getInstructions().get(i).getVariable(), 0L);
+        }
+        programVariableState.put(Variable.RESULT, 0L);
     }
 }

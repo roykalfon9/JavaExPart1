@@ -14,18 +14,27 @@ public abstract class AbstractInstruction implements Sinstruction {
     private final Label label;
     private final Variable variable;
     private Sprogram expandProgram;
+    private Sinstruction parentInstruction;
 
-    public AbstractInstruction(InstructionData instructionData, Variable variable) {
+    public AbstractInstruction(InstructionData instructionData, Variable variable)
+    {
      this(instructionData, variable, FixedLabel.EMPTY);
     }
+    public AbstractInstruction(InstructionData instructionData, Variable variable, Label label)
+    {
+        this(instructionData, variable, label,null);
+    }
 
-    public AbstractInstruction(InstructionData instructionData, Variable variable, Label label) {
+    public AbstractInstruction(InstructionData instructionData, Variable variable, Label label,Sinstruction parentInstruction )
+    {
         this.instructionData = instructionData;
         this.label = label;
         this.variable = variable;
         this.expandProgram = new SprogramImpl("expand");
-    }
+        this.parentInstruction = parentInstruction;
 
+
+    }
 
     @Override
     public String getName() {
@@ -52,7 +61,13 @@ public abstract class AbstractInstruction implements Sinstruction {
         return instructionData.isBasic();
     }
 
+    @Override
     public Sprogram getExpandProgram() {
         return expandProgram;
     }
+
+    @Override
+    public Sinstruction getparentInstruction(){ return parentInstruction;}
+
+
 }

@@ -26,7 +26,8 @@ public class JoToLabrelInstruction extends AbstractInstruction {
     }
 
     @Override
-    public Label execute(ExecutionContext context) {
+    public Label execute(ExecutionContext context)
+    {
         return GoTo;
     }
 
