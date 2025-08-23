@@ -253,24 +253,34 @@ public class XMLParser implements IXMLParser {
                 throw new UnsupportedOperationException("Unrecognized instruction name: '" + xmlIns.getName() + "'");
         }
     }
-    private Variable analyzeVariable (String PvarName)
-    {
-        String up = PvarName.toUpperCase();
-        int num = Integer.parseInt(up.substring(1)); // תיקון קריטי: לא charAt(1)
+    private Variable analyzeVariable(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Missing S-Variable. Expected Xn/Yn/Wn, or just 'Y'.");
+        }
 
-        if (up.charAt(0) == 'X')
-        {
+        String up = name.trim().toUpperCase(Locale.ROOT);
+        char kind = up.charAt(0);
+        String digits = (up.length() > 1) ? up.substring(1) : "";
+
+        if (kind == 'Y' && digits.isEmpty()) {
+            return new VariableImpl(VariableType.RESULT, 1);
+        }
+
+        if (digits.isEmpty() || !digits.chars().allMatch(Character::isDigit)) {
+            throw new IllegalArgumentException(
+                    "Invalid S-Variable '" + name + "'. Expected Xn/Yn/Wn (e.g., X1), or just 'Y'.");
+        }
+
+        int num = Integer.parseInt(digits);
+        if (kind == 'X') {
             return new VariableImpl(VariableType.INPUT, num);
-        }
-        else if (up.charAt(0) == 'Y')
-        {
+        } else if (kind == 'Y') {
             return new VariableImpl(VariableType.RESULT, num);
-        }
-        else
-        {
+        } else {
             return new VariableImpl(VariableType.WORK, num);
         }
     }
+
     private static void validateXmlFilePath(String filePath) throws Exception {
         if (filePath == null || filePath.isBlank()) {
             throw new IllegalArgumentException("Path is null/blank.");

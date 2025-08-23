@@ -15,12 +15,14 @@ public class JumpNotZeroInstruction extends AbstractInstruction {
         super(InstructionData.JUMP_NO_ZERO, variable);
         this.jumpTargetIfTrue = jumpTargetIfTrue;
     }
-
     public JumpNotZeroInstruction(Variable variable, Label jumpTargetIfTrue, Label label) {
         super(InstructionData.JUMP_NO_ZERO, variable, label);
         this.jumpTargetIfTrue = jumpTargetIfTrue;
     }
-
+    public JumpNotZeroInstruction(Variable variable, Label jumpTargetIfTrue, Sinstruction parentInstruction) {
+        super(InstructionData.JUMP_NO_ZERO, variable, parentInstruction);
+        this.jumpTargetIfTrue = jumpTargetIfTrue;
+    }
     public JumpNotZeroInstruction(Variable variable, Label jumpTargetIfTrue, Sinstruction parentInstruction, Label label) {
         super(InstructionData.JUMP_NO_ZERO, variable, parentInstruction, label);
         this.jumpTargetIfTrue = jumpTargetIfTrue;

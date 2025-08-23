@@ -17,6 +17,10 @@ public class IncreaseInstruction extends  AbstractInstruction {
     {
         super(InstructionData.INCREASE, variable, label);
     }
+    public IncreaseInstruction(Variable variable,Sinstruction parentInstruction )
+    {
+        super(InstructionData.INCREASE, variable,parentInstruction);
+    }
     public IncreaseInstruction(Variable variable,Sinstruction parentInstruction, Label label )
     {
         super(InstructionData.INCREASE, variable,parentInstruction, label);

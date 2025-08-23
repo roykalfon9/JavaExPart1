@@ -25,6 +25,10 @@ public abstract class AbstractInstruction implements Sinstruction {
     {
         this(instructionData, variable,null, label);
     }
+    public AbstractInstruction(InstructionData instructionData, Variable variable, Sinstruction parentInstruction)
+    {
+        this(instructionData, variable,parentInstruction, FixedLabel.EMPTY);
+    }
 
     public AbstractInstruction(InstructionData instructionData, Variable variable, Sinstruction parentInstruction, Label label )
     {

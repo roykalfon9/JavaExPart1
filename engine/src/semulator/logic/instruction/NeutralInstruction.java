@@ -15,6 +15,9 @@ public class NeutralInstruction extends AbstractInstruction {
     public NeutralInstruction(Variable variable, Label label) {
         super(InstructionData.NEUTRAL, variable, label);
     }
+    public NeutralInstruction(Variable variable, Sinstruction parentInstruction) {
+        super(InstructionData.NEUTRAL, variable, parentInstruction);
+    }
     public NeutralInstruction(Variable variable, Sinstruction parentInstruction, Label label) {
         super(InstructionData.NEUTRAL, variable, parentInstruction, label);
     }

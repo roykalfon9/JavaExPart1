@@ -23,12 +23,17 @@ public class JoToLabelInstruction extends AbstractInstruction {
         this.GoTo = GoTo;
         InitializeIProgramInstruction();
     }
+    public JoToLabelInstruction(Variable variable, Label GoTo, Sinstruction parentInstruction)
+    {
+        super(InstructionData.GOTO_LABEL, variable, parentInstruction);
+        this.GoTo = GoTo;
+        InitializeIProgramInstruction();
+    }
     public JoToLabelInstruction(Variable variable, Label GoTo, Sinstruction parentInstruction, Label label )
     {
         super(InstructionData.GOTO_LABEL, variable, parentInstruction, label);
         this.GoTo = GoTo;
         InitializeIProgramInstruction();
-
     }
 
 
