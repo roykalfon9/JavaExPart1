@@ -9,28 +9,28 @@ import semulator.logic.variable.Variable;
 
 public class JumpNotZeroInstruction extends AbstractInstruction {
 
-    private Label jumpTargetIfTrue;
+
 
     public JumpNotZeroInstruction(Variable variable, Label jumpTargetIfTrue) {
         super(InstructionData.JUMP_NO_ZERO, variable);
-        this.jumpTargetIfTrue = jumpTargetIfTrue;
+        this.jumpTo = jumpTargetIfTrue;
     }
     public JumpNotZeroInstruction(Variable variable, Label jumpTargetIfTrue, Label label) {
         super(InstructionData.JUMP_NO_ZERO, variable, label);
-        this.jumpTargetIfTrue = jumpTargetIfTrue;
+        this.jumpTo = jumpTargetIfTrue;
     }
     public JumpNotZeroInstruction(Variable variable, Label jumpTargetIfTrue, Sinstruction parentInstruction) {
         super(InstructionData.JUMP_NO_ZERO, variable, parentInstruction);
-        this.jumpTargetIfTrue = jumpTargetIfTrue;
+        this.jumpTo = jumpTargetIfTrue;
     }
     public JumpNotZeroInstruction(Variable variable, Label jumpTargetIfTrue, Sinstruction parentInstruction, Label label) {
         super(InstructionData.JUMP_NO_ZERO, variable, parentInstruction, label);
-        this.jumpTargetIfTrue = jumpTargetIfTrue;
+        this.jumpTo = jumpTargetIfTrue;
     }
 
     @Override
     public Label execute(ExecutionContext context) {
-        return (context.getVariablevalue(this.getVariable()) != 0) ? jumpTargetIfTrue : FixedLabel.EMPTY;
+        return (context.getVariablevalue(this.getVariable()) != 0) ? jumpTo : FixedLabel.EMPTY;
     }
 
     @Override
@@ -41,7 +41,7 @@ public class JumpNotZeroInstruction extends AbstractInstruction {
                 this.isBasic(),
                 this.getLabel().getLabelRepresentation(),
                 this.getVariable().getRepresentation().toLowerCase(),
-                this.jumpTargetIfTrue.getLabelRepresentation(),
+                this.jumpTo.getLabelRepresentation(),
                 this.cycles());
     }
 

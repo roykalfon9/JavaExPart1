@@ -80,4 +80,5 @@ public class ProgramExecutorImpl implements ProgramExecuter{
         }
         programVariableState.put(Variable.RESULT, 0L);
     }
+
 }

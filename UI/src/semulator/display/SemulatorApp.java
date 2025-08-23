@@ -23,7 +23,14 @@ class SemulatorApp {
     private final List<String> history = new ArrayList<>();
     private boolean running = true;
 
+    private final List<RunRecord> runHistory = new ArrayList<>();
+    private boolean programValid = false;
+
+
     public void start() {
+
+
+
         showIntroOnce();  // <-- one-time intro before the menu
         while (running) {
             printMenu();
@@ -53,22 +60,22 @@ class SemulatorApp {
             return;
         }
 
-        String input = (raw == null) ? "" : raw.trim();
+        String input = sanitizePathInput(raw);
         if (input.isEmpty()) {
             System.out.println(">> Canceled.");
             pauseForEnter();
             return;
         }
 
-        // Strip surrounding quotes if the user pasted a quoted path
-        if ((input.startsWith("\"") && input.endsWith("\"")) ||
-                (input.startsWith("'") && input.endsWith("'"))) {
-            input = input.substring(1, input.length() - 1);
+        Path path;
+        try {
+            path = Paths.get(input).toAbsolutePath().normalize();
+        } catch (Exception ex) {
+            System.out.println(">> Invalid path: " + ex.getMessage());
+            pauseForEnter();
+            return; // שומר על התוכנית התקינה הקיימת, אם יש
         }
 
-        Path path = Paths.get(input).toAbsolutePath().normalize();
-
-        // בדיקות קלילות לפני הקריאה לפרסר (הפרסר גם בודק בעצמו, אבל זה נותן הודעות מוקדמות ונוחות)
         if (!Files.exists(path)) {
             System.out.println(">> File not found: " + path);
             pauseForEnter();
@@ -80,14 +87,25 @@ class SemulatorApp {
             return;
         }
         if (!path.getFileName().toString().toLowerCase().endsWith(".xml")) {
-            System.out.println(">> Warning: file extension is not .xml (continuing anyway).");
+            System.out.println(">> Warning: file extension is not .xml ");
+            pauseForEnter();
+            return;
         }
 
         try {
-            // שימוש ישיר ב-XMLParser שלך: מקבל String path ומחזיר Sprogram
             Sprogram program = xmlParser.loadProgramFromXML(path.toString());
+
+            if (!program.validate())
+            {
+                System.out.println(">> Program validation failed: a jump targets an undefined label.");
+                pauseForEnter();
+                return;
+            }
+
             this.currentProgram = program;
             this.lastLoadedPath = path;
+            runHistory.clear();
+            programValid = true;
 
             System.out.println(">> Program loaded successfully from:");
             System.out.println("   " + path);
@@ -102,7 +120,15 @@ class SemulatorApp {
 
 
 
-
+    private static String sanitizePathInput(String s) {
+        if (s == null) return "";
+        String t = s.trim();
+        if ((t.startsWith("\"") && t.endsWith("\"")) || (t.startsWith("'") && t.endsWith("'"))) {
+            t = t.substring(1, t.length() - 1);
+        }
+        t = t.replace("\uFEFF","").replaceAll("\\p{Cf}","").replace('\u00A0',' ').trim();
+        return t;
+    }
 
 
     private void showIntroOnce() {

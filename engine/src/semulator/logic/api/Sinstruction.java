@@ -18,4 +18,5 @@ Sinstruction getParentInstruction();
 void setInstructionNumber(int instructionNumber);
 int getInstructionNumber();
 String toDisplayString();
+Label getJumpLabel();
 }

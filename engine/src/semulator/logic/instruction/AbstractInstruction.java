@@ -16,6 +16,7 @@ public abstract class AbstractInstruction implements Sinstruction {
     private final Variable variable;
     private Sprogram instructionProgram;
     private Sinstruction parentInstruction;
+    protected Label jumpTo;
 
     public AbstractInstruction(InstructionData instructionData, Variable variable)
     {
@@ -37,8 +38,13 @@ public abstract class AbstractInstruction implements Sinstruction {
         this.variable = variable;
         this.instructionProgram = new SprogramImpl("expand");
         this.parentInstruction = parentInstruction;
+        this.jumpTo = null;
+    }
 
-
+    @Override
+    public Label getJumpLabel()
+    {
+        return this.jumpTo;
     }
 
     @Override

@@ -3,7 +3,6 @@ package semulator.logic.program;
 import semulator.logic.api.Sinstruction;
 import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
-import semulator.logic.label.LabelImp;
 import semulator.logic.variable.Variable;
 import semulator.logic.variable.VariableType;
 
@@ -13,10 +12,12 @@ public class SprogramImpl implements Sprogram {
 
     private final String name;
     private final List<Sinstruction> instructions;
+    private final Set<Label> labels;
 
     public SprogramImpl(String name) {
         this.name = name;
         this.instructions = new ArrayList<>();
+        this.labels = new LinkedHashSet<>();
     }
 
     @Override
@@ -27,6 +28,10 @@ public class SprogramImpl implements Sprogram {
     @Override
     public void addInstruction(Sinstruction instruction) {
         instructions.add(instruction);
+        if (instruction.getLabel() != null && instruction.getLabel() != FixedLabel.EMPTY)
+        {
+            labels.add(instruction.getLabel());
+        }
     }
 
     @Override
@@ -49,8 +54,18 @@ public class SprogramImpl implements Sprogram {
 
     @Override
     public boolean validate() {
-        ///  ??
-        return false;
+        for (Sinstruction instruction : instructions)
+        {
+            if (instruction.getJumpLabel() == FixedLabel.EMPTY)
+            {
+                return false;
+            }
+            if (instruction.getJumpLabel() != null && instruction.getJumpLabel() != FixedLabel.EXIT && instruction.getJumpLabel() != FixedLabel.EMPTY && !labels.contains(instruction.getJumpLabel()))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -91,4 +106,5 @@ public class SprogramImpl implements Sprogram {
             this.instructions.get(i).setInstructionNumber(i+1);
         }
     }
+
 }

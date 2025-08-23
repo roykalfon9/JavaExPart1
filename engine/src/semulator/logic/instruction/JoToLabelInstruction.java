@@ -11,28 +11,26 @@ import semulator.logic.variable.VariableType;
 
 public class JoToLabelInstruction extends AbstractInstruction {
 
-    Label GoTo;
-
     public JoToLabelInstruction(Variable variable, Label GoTo) {
         super(InstructionData.GOTO_LABEL, variable);
-        this.GoTo = GoTo;
+        this.jumpTo = GoTo;
         InitializeIProgramInstruction();
     }
     public JoToLabelInstruction(Variable variable, Label GoTo, Label label) {
         super(InstructionData.GOTO_LABEL, variable, label);
-        this.GoTo = GoTo;
+        this.jumpTo = GoTo;
         InitializeIProgramInstruction();
     }
     public JoToLabelInstruction(Variable variable, Label GoTo, Sinstruction parentInstruction)
     {
         super(InstructionData.GOTO_LABEL, variable, parentInstruction);
-        this.GoTo = GoTo;
+        this.jumpTo = GoTo;
         InitializeIProgramInstruction();
     }
     public JoToLabelInstruction(Variable variable, Label GoTo, Sinstruction parentInstruction, Label label )
     {
         super(InstructionData.GOTO_LABEL, variable, parentInstruction, label);
-        this.GoTo = GoTo;
+        this.jumpTo = GoTo;
         InitializeIProgramInstruction();
     }
 
@@ -40,7 +38,7 @@ public class JoToLabelInstruction extends AbstractInstruction {
     @Override
     public Label execute(ExecutionContext context)
     {
-        return GoTo;
+        return jumpTo;
     }
 
     private void InitializeIProgramInstruction ()
@@ -48,7 +46,7 @@ public class JoToLabelInstruction extends AbstractInstruction {
         Variable z1 =  new VariableImpl(VariableType.WORK,1);
         Label label = new LabelImp(1);
         IncreaseInstruction increase = new  IncreaseInstruction(z1,this,this.getLabel());
-        JumpNotZeroInstruction jumpNotZero = new JumpNotZeroInstruction(z1, GoTo);
+        JumpNotZeroInstruction jumpNotZero = new JumpNotZeroInstruction(z1, jumpTo);
         this.getInstructionProgram().addInstruction(increase);
         this.getInstructionProgram().addInstruction(jumpNotZero);
     }
@@ -60,7 +58,7 @@ public class JoToLabelInstruction extends AbstractInstruction {
                 this.getInstructionNumber(),
                 this.isBasic(),
                 this.getLabel().getLabelRepresentation(),
-                this.GoTo.getLabelRepresentation(),
+                this.jumpTo.getLabelRepresentation(),
                 this.cycles());
     }
 
