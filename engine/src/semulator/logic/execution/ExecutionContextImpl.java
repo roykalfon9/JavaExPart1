@@ -21,4 +21,7 @@ public class ExecutionContextImpl implements ExecutionContext {
     public void updateVariable(Variable v, Long value) {
         VariableState.put(v, value);
     }
+
+    @Override
+    public Map<Variable, Long> getContext() { return VariableState; }
 }

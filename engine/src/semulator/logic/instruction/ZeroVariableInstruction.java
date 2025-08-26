@@ -40,8 +40,16 @@ public class ZeroVariableInstruction extends AbstractInstruction {
     public void InitializeIProgramInstruction (ExpansionIdAllocator ex) {
         this.instructionProgram = new SprogramImpl("expand");
 
-        Label label = new LabelImp(ex.getLabelNumber());
-        IncreaseInstruction increase = new IncreaseInstruction(this.getVariable(),this,this.getLabel());
+        Label label;
+        if (this.getLabel() != FixedLabel.EMPTY)
+        {
+            label = this.getLabel();
+        }
+        else
+        {
+            label = new LabelImp(ex.getLabelNumber());
+        }
+
         DecreaseInstruction decrease = new DecreaseInstruction(this.getVariable(),this, label);
         JumpNotZeroInstruction jumpNotZero = new JumpNotZeroInstruction(this.getVariable(), label,this);
 

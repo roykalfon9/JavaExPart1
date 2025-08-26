@@ -64,6 +64,9 @@ public class ProgramExecutorImpl implements ProgramExecuter{
         } while (nextLabe != FixedLabel.EXIT && instructionIndex < program.getInstructions().size()) ;
 
         Variable y = new VariableImpl(VariableType.RESULT, 1);
+
+        programVariableState = context.getContext();
+
         return context.getVariablevalue(y);
     }
 
@@ -78,8 +81,11 @@ public class ProgramExecutorImpl implements ProgramExecuter{
         for (int i = 0; i < program.getInstructions().size(); i++)
         {
             programVariableState.put(program.getInstructions().get(i).getVariable(), 0L);
+            if (program.getInstructions().get(i).getSecondaryVariable() != null)
+            {
+                programVariableState.put(program.getInstructions().get(i).getSecondaryVariable(), 0L);
+            }
         }
-
             Variable y = new VariableImpl(VariableType.RESULT, 1);
             programVariableState.put(y, 0L);
     }
