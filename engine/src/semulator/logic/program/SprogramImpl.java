@@ -1,6 +1,7 @@
 package semulator.logic.program;
 
 import semulator.logic.api.Sinstruction;
+import semulator.logic.expansion.ExpansionIdAllocator;
 import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
 import semulator.logic.variable.Variable;
@@ -70,14 +71,25 @@ public class SprogramImpl implements Sprogram {
 
     @Override
     public int calculateMaxDegree() {
-        ///  ??
-        return 0;
+        int maxDegree = 0;
+        for (Sinstruction instruction : instructions)
+        {
+            if (instruction.degree() > maxDegree)
+            {
+                maxDegree = instruction.degree();
+            }
+        }
+        return maxDegree;
     }
 
     @Override
     public int calculateCycle() {
-        ///  ??
-        return 0;
+        int totalCycles = 0;
+        for (Sinstruction instruction : instructions)
+        {
+            totalCycles += instruction.cycles();
+        }
+        return totalCycles;
     }
 
     @Override
@@ -88,15 +100,50 @@ public class SprogramImpl implements Sprogram {
         for (Sinstruction instruction : instructions) {
             if (instruction == null || instruction.getVariable() == null) continue;
             Variable v = instruction.getVariable();
+
             if (v.getType() == VariableType.INPUT) {
                 String token = v.getRepresentation();
                 if (seen.add(token)) {
                     joiner.add(token);
                 }
             }
+             if (instruction.getSecondaryVariable() != null)
+            {
+                Variable s = instruction.getSecondaryVariable();
+                String stoken = s.getRepresentation();
+                if (seen.add(stoken)) {
+                    joiner.add(stoken);
+                }
+            }
         }
         return joiner.toString();
     }
+
+    @Override
+    public String stringLabelNamesWithExitLast() {
+        StringJoiner joiner = new StringJoiner(", ");
+        boolean sawExit = false;
+
+        if (labels == null || labels.isEmpty()) {
+            return "";
+        }
+
+        for (Label lbl : labels) {
+            if (lbl == null || lbl == FixedLabel.EMPTY) continue;
+            if (lbl == FixedLabel.EXIT) {
+                sawExit = true;
+                continue;
+            }
+            joiner.add(lbl.getLabelRepresentation());
+        }
+
+        if (sawExit) {
+            joiner.add("EXIT");
+        }
+
+        return joiner.toString();
+    }
+
 
     @Override
     public void setNumberInstructions()
@@ -107,4 +154,80 @@ public class SprogramImpl implements Sprogram {
         }
     }
 
+    @Override
+    public Sprogram expand(int degree)
+    {
+        ExpansionIdAllocator idAllocator = new ExpansionIdAllocator(getMaxWorkVariableNumber(), getMaxLabelNumber());
+        int currDegree = 0;
+
+        List<Sinstruction> expandInstructions = new ArrayList<>();
+        List<Sinstruction> tempList = new ArrayList<>();
+
+        expandInstructions.addAll(instructions);
+
+        do{
+            for(Sinstruction instruction : expandInstructions)
+            {
+                if (instruction.degree()>0)
+                {
+                    instruction.InitializeIProgramInstruction(idAllocator);
+
+                    for(int i=0; i<instruction.getInstructionProgram().getInstructions().size();i++)
+                    {
+                        tempList.add(instruction.getInstructionProgram().getInstructions().get(i));
+                    }
+                }
+                else
+                {
+                    tempList.add(instruction);
+                }
+            }
+            expandInstructions.clear();
+            expandInstructions.addAll(tempList);
+            tempList.clear();
+            currDegree++;
+        }
+        while (currDegree<degree);
+
+        Sprogram expandProgram = new SprogramImpl(this.name);
+
+        for(Sinstruction instruction : expandInstructions)
+        {
+            expandProgram.addInstruction(instruction);
+        }
+
+        expandProgram.setNumberInstructions();
+
+        return expandProgram;
+    }
+
+    private int getMaxLabelNumber() {
+
+        int max = 0;
+
+        for (Sinstruction instruction : instructions) {
+            if (instruction == null || instruction.getVariable() == null) continue;
+            Label l = instruction.getLabel();
+            if (l.getNumber() > max) {
+                max = l.getNumber();
+            }
+        }
+        return max;
+    }
+
+    private int getMaxWorkVariableNumber() {
+
+        int max = 0;
+
+        for (Sinstruction instruction : instructions) {
+            if (instruction == null || instruction.getVariable() == null) continue;
+                Variable v = instruction.getVariable();
+                if (v.getType() == VariableType.WORK) {
+                    if (v.getNumber() > max) {
+                        max = v.getNumber();
+                    }
+                }
+            }
+        return max;
+    }
 }

@@ -1,8 +1,6 @@
 package semulator.logic.xml.xmlreader;
 
-import org.w3c.dom.Element;
 import semulator.logic.api.Sinstruction;
-import semulator.logic.execution.ExecutionContext;
 import semulator.logic.instruction.*;
 import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
@@ -224,35 +222,250 @@ public class XMLParser implements IXMLParser {
                 return PIns;
 
             }
-/*
-            case "JUMP_ZERO":
-            {
-
-            }
-            case "GOTO_LABEL":
-            {
-
-            }
             case "ASSIGNMENT":
             {
+                String PvarName = xmlIns.getSVariable();
+                Variable Pvar = analyzeVariable(PvarName);
+
+                SInstructionArguments argContainer = xmlIns.getSInstructionArguments();
+                SInstructionArgument firstArg = argContainer.getSInstructionArgument().get(0);
+                String PArgumentVarName = firstArg.getValue();
+                Variable PArgumentVar = analyzeVariable(PArgumentVarName);
+
+                String PlabelName = xmlIns.getSLabel();
+                Label Plabel;
+
+                if (PlabelName == null || PlabelName.isEmpty())
+                {
+                    PIns = new AssigmentInstruction(Pvar, PArgumentVar);
+                }
+                else if (PlabelName.toUpperCase().equals("EXIT"))
+                {
+                    Plabel = FixedLabel.EXIT;
+                    PIns = new AssigmentInstruction(Pvar,PArgumentVar,Plabel);
+                }
+                else
+                {
+                    int n = Integer.parseInt(PlabelName.substring(1));
+                    Plabel = new LabelImp(n);
+                    PIns = new AssigmentInstruction(Pvar,PArgumentVar,Plabel);
+                }
+                return PIns;
+            }
+
+            case "GOTO_LABEL":
+            {
+                String PvarName = xmlIns.getSVariable();
+                Variable Pvar = analyzeVariable(PvarName);
+
+                SInstructionArguments argContainer = xmlIns.getSInstructionArguments();
+                SInstructionArgument firstArg = argContainer.getSInstructionArgument().get(0);
+                String PArgumentLabelName = firstArg.getValue();
+                Label PArgumentLabel;
+
+                if  (PArgumentLabelName.toUpperCase().equals("EXIT"))
+                {
+                    PArgumentLabel = FixedLabel.EXIT;
+                }
+                else
+                {
+                    int n = Integer.parseInt(PArgumentLabelName.substring(1));
+                    PArgumentLabel = new LabelImp(n);
+                }
+
+                String PlabelName = xmlIns.getSLabel();
+                Label Plabel;
+
+                if (PlabelName == null || PlabelName.isEmpty())
+                {
+                    PIns = new GoToLabelInstruction(Pvar, PArgumentLabel);
+                }
+                else if (PlabelName.toUpperCase().equals("EXIT"))
+                {
+                    Plabel = FixedLabel.EXIT;
+                    PIns = new GoToLabelInstruction(Pvar,PArgumentLabel,Plabel);
+                }
+                else
+                {
+                    int n = Integer.parseInt(PlabelName.substring(1));
+                    Plabel = new LabelImp(n);
+                    PIns = new GoToLabelInstruction(Pvar,PArgumentLabel,Plabel);
+                }
+                return PIns;
+
 
             }
+
             case "CONSTANT_ASSIGNMENT":
             {
+                String PvarName = xmlIns.getSVariable();
+                Variable Pvar = analyzeVariable(PvarName);
+
+                SInstructionArguments argContainer = xmlIns.getSInstructionArguments();
+                SInstructionArgument firstArg = argContainer.getSInstructionArgument().get(0);
+                String PArgumentLonglName = firstArg.getValue();
+                long PArgumentLong = Long.parseLong(PArgumentLonglName);
+
+                String PlabelName = xmlIns.getSLabel();
+                Label Plabel;
+
+                if (PlabelName == null || PlabelName.isEmpty())
+                {
+                    PIns = new ConstantAssignmentInstruction(Pvar, PArgumentLong);
+                }
+                else if (PlabelName.toUpperCase().equals("EXIT"))
+                {
+                    Plabel = FixedLabel.EXIT;
+                    PIns = new ConstantAssignmentInstruction(Pvar,PArgumentLong,Plabel);
+                }
+                else
+                {
+                    int n = Integer.parseInt(PlabelName.substring(1));
+                    Plabel = new LabelImp(n);
+                    PIns = new ConstantAssignmentInstruction(Pvar,PArgumentLong,Plabel);
+                }
+                return PIns;
+            }
+
+            case "JUMP_ZERO":
+            {
+                String PvarName = xmlIns.getSVariable();
+                Variable Pvar = analyzeVariable(PvarName);
+
+                SInstructionArguments argContainer = xmlIns.getSInstructionArguments();
+                SInstructionArgument firstArg = argContainer.getSInstructionArgument().get(0);
+                String PArgumentLabelName = firstArg.getValue();
+                Label PArgumentLabel;
+
+                if  (PArgumentLabelName.toUpperCase().equals("EXIT"))
+                {
+                    PArgumentLabel = FixedLabel.EXIT;
+                }
+                else
+                {
+                    int n = Integer.parseInt(PArgumentLabelName.substring(1));
+                    PArgumentLabel = new LabelImp(n);
+                }
+
+                String PlabelName = xmlIns.getSLabel();
+                Label Plabel;
+
+                if (PlabelName == null || PlabelName.isEmpty())
+                {
+                    PIns = new JumpZeroInstruction(Pvar, PArgumentLabel);
+                }
+                else if (PlabelName.toUpperCase().equals("EXIT"))
+                {
+                    Plabel = FixedLabel.EXIT;
+                    PIns = new JumpZeroInstruction(Pvar,PArgumentLabel,Plabel);
+                }
+                else
+                {
+                    int n = Integer.parseInt(PlabelName.substring(1));
+                    Plabel = new LabelImp(n);
+                    PIns = new JumpZeroInstruction(Pvar,PArgumentLabel,Plabel);
+                }
+                return PIns;
             }
 
             case "JUMP_EQUAL_CONSTANT":
             {
+                String PvarName = xmlIns.getSVariable();
+                Variable Pvar = analyzeVariable(PvarName);
+
+                SInstructionArguments argContainer = xmlIns.getSInstructionArguments();
+                SInstructionArgument firstArg = argContainer.getSInstructionArgument().get(0);
+                String PArgumentLabelName = firstArg.getValue();
+                Label PArgumentLabel;
+                SInstructionArgument secArg = argContainer.getSInstructionArgument().get(1);
+                String PArgumentLongName = secArg.getValue();
+                long PArgumentLong = Long.parseLong(PArgumentLongName);
+
+
+                if  (PArgumentLabelName.toUpperCase().equals("EXIT"))
+                {
+                    PArgumentLabel = FixedLabel.EXIT;
+                }
+                else
+                {
+                    int n = Integer.parseInt(PArgumentLabelName.substring(1));
+                    PArgumentLabel = new LabelImp(n);
+                }
+
+                String PlabelName = xmlIns.getSLabel();
+                Label Plabel;
+
+                if (PlabelName == null || PlabelName.isEmpty())
+                {
+                    PIns = new JumpEqualConstantInstruction(Pvar, PArgumentLabel,PArgumentLong);
+                }
+                else if (PlabelName.toUpperCase().equals("EXIT"))
+                {
+                    Plabel = FixedLabel.EXIT;
+                    PIns = new JumpEqualConstantInstruction(Pvar,PArgumentLabel,PArgumentLong,Plabel);
+                }
+                else
+                {
+                    int n = Integer.parseInt(PlabelName.substring(1));
+                    Plabel = new LabelImp(n);
+                    PIns = new JumpEqualConstantInstruction(Pvar,PArgumentLabel,PArgumentLong,Plabel);
+                }
+                return PIns;
             }
 
             case "JUMP_EQUAL_VARIABLE":
             {
+                String PvarName = xmlIns.getSVariable();
+                Variable Pvar = analyzeVariable(PvarName);
+
+                SInstructionArguments argContainer = xmlIns.getSInstructionArguments();
+                SInstructionArgument firstArg = argContainer.getSInstructionArgument().get(0);
+                String PArgumentLabelName = firstArg.getValue();
+                Label PArgumentLabel;
+                SInstructionArgument secArg = argContainer.getSInstructionArgument().get(1);
+                String PArgumentVarName = secArg.getValue();
+                Variable PArgumentVar = analyzeVariable(PArgumentVarName);
+
+
+                if  (PArgumentLabelName.toUpperCase().equals("EXIT"))
+                {
+                    PArgumentLabel = FixedLabel.EXIT;
+                }
+                else
+                {
+                    int n = Integer.parseInt(PArgumentLabelName.substring(1));
+                    PArgumentLabel = new LabelImp(n);
+                }
+
+                String PlabelName = xmlIns.getSLabel();
+                Label Plabel;
+
+                if (PlabelName == null || PlabelName.isEmpty())
+                {
+                    PIns = new JumpEqualVariableInstruction(Pvar, PArgumentLabel,PArgumentVar);
+                }
+                else if (PlabelName.toUpperCase().equals("EXIT"))
+                {
+                    Plabel = FixedLabel.EXIT;
+                    PIns = new JumpEqualVariableInstruction(Pvar,PArgumentLabel,PArgumentVar,Plabel);
+                }
+                else
+                {
+                    int n = Integer.parseInt(PlabelName.substring(1));
+                    Plabel = new LabelImp(n);
+                    PIns = new JumpEqualVariableInstruction(Pvar,PArgumentLabel,PArgumentVar,Plabel);
+                }
+                return PIns;
+
             }
-*/
+
             default:
                 throw new UnsupportedOperationException("Unrecognized instruction name: '" + xmlIns.getName() + "'");
         }
     }
+
+
+
     private Variable analyzeVariable(String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Missing S-Variable. Expected Xn/Yn/Wn, or just 'Y'.");

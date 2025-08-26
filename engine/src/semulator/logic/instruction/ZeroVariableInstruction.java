@@ -1,8 +1,10 @@
 package semulator.logic.instruction;
 
 import semulator.logic.api.InstructionData;
+import semulator.logic.api.Sinstruction;
 import semulator.logic.execution.ExecutionContext;
 import semulator.logic.execution.ProgramExecutorImpl;
+import semulator.logic.expansion.ExpansionIdAllocator;
 import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
 import semulator.logic.label.LabelImp;
@@ -14,34 +16,41 @@ public class ZeroVariableInstruction extends AbstractInstruction {
 
     public ZeroVariableInstruction(Variable variable) {
         super(InstructionData.ZERO_VARIABLE, variable);
-        InitializeIProgramInstruction();
     }
     public ZeroVariableInstruction(Variable variable, Label label) {
         super(InstructionData.ZERO_VARIABLE, variable, label);
-        InitializeIProgramInstruction();
     }
+    public ZeroVariableInstruction(Variable variable, Sinstruction parentInstruction) {
+        super(InstructionData.ZERO_VARIABLE, variable, parentInstruction);
+    }
+    public ZeroVariableInstruction(Variable variable, Sinstruction parentInstruction, Label label) {
+        super(InstructionData.ZERO_VARIABLE, variable, parentInstruction, label);
+    }
+
+
+
 
     @Override
     public Label execute(ExecutionContext context) {
-        if (context.getVariablevalue(this.getVariable()) != 0)
-        {
-            ProgramExecutorImpl expandExecute = new ProgramExecutorImpl(this.getInstructionProgram());
-            context.updateVariable(this.getVariable(), expandExecute.run(context.getVariablevalue(this.getVariable())));
-        }
+        context.updateVariable(this.getVariable(), 0L);
         return FixedLabel.EMPTY;
     }
 
-    private void InitializeIProgramInstruction ()
-    {
-        Label label = new LabelImp(1);
+    @Override
+    public void InitializeIProgramInstruction (ExpansionIdAllocator ex) {
+        this.instructionProgram = new SprogramImpl("expand");
+
+        Label label = new LabelImp(ex.getLabelNumber());
+        IncreaseInstruction increase = new IncreaseInstruction(this.getVariable(),this,this.getLabel());
         DecreaseInstruction decrease = new DecreaseInstruction(this.getVariable(),this, label);
         JumpNotZeroInstruction jumpNotZero = new JumpNotZeroInstruction(this.getVariable(), label,this);
+
         this.getInstructionProgram().addInstruction(decrease);
         this.getInstructionProgram().addInstruction(jumpNotZero);
     }
         public String toDisplayString()
         {
-            return String.format("#%d (%s) [ %-5s ]  %s <- 0 (%d)",
+            return String.format("#%d (%s) [%-5s]  %s <- 0 (%d)",
                     this.getInstructionNumber(),
                     this.isBasic(),
                     this.getLabel().getLabelRepresentation(),

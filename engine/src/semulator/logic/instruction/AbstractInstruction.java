@@ -14,9 +14,11 @@ public abstract class AbstractInstruction implements Sinstruction {
     private int instructionNumber;
     private final Label label;
     private final Variable variable;
-    private Sprogram instructionProgram;
     private Sinstruction parentInstruction;
+    protected Sprogram instructionProgram;
     protected Label jumpTo;
+    protected Variable secondaryVariable;
+    protected long constValue;
 
     public AbstractInstruction(InstructionData instructionData, Variable variable)
     {
@@ -39,7 +41,12 @@ public abstract class AbstractInstruction implements Sinstruction {
         this.instructionProgram = new SprogramImpl("expand");
         this.parentInstruction = parentInstruction;
         this.jumpTo = null;
+        this.secondaryVariable = null;
+        this.constValue = 0L;
+
     }
+    @Override
+    public long getConstValue(){return constValue;}
 
     @Override
     public Label getJumpLabel()
@@ -58,6 +65,9 @@ public abstract class AbstractInstruction implements Sinstruction {
     }
 
     @Override
+    public int degree() {return instructionData.degree();}
+
+    @Override
     public Label getLabel() {
         return  label;
     }
@@ -66,6 +76,9 @@ public abstract class AbstractInstruction implements Sinstruction {
     public Variable getVariable() {
         return  variable;
     }
+
+    @Override
+    public Variable getSecondaryVariable() {return secondaryVariable;}
 
     @Override
     public String isBasic() {
@@ -89,4 +102,5 @@ public abstract class AbstractInstruction implements Sinstruction {
     public int getInstructionNumber() {
         return instructionNumber;
     }
+
 }

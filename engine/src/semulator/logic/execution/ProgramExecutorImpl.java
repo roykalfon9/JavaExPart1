@@ -63,7 +63,8 @@ public class ProgramExecutorImpl implements ProgramExecuter{
 
         } while (nextLabe != FixedLabel.EXIT && instructionIndex < program.getInstructions().size()) ;
 
-        return context.getVariablevalue(Variable.RESULT);
+        Variable y = new VariableImpl(VariableType.RESULT, 1);
+        return context.getVariablevalue(y);
     }
 
     @Override
@@ -78,7 +79,17 @@ public class ProgramExecutorImpl implements ProgramExecuter{
         {
             programVariableState.put(program.getInstructions().get(i).getVariable(), 0L);
         }
-        programVariableState.put(Variable.RESULT, 0L);
+
+            Variable y = new VariableImpl(VariableType.RESULT, 1);
+            programVariableState.put(y, 0L);
     }
 
+
+    private boolean IsReturnVariableExist()
+    {
+        for (Variable v : programVariableState.keySet()) {
+            if (v.getType() == VariableType.RESULT) return true;
+        }
+        return false;
+    }
 }

@@ -3,6 +3,7 @@ package semulator.logic.instruction;
 import semulator.logic.api.InstructionData;
 import semulator.logic.api.Sinstruction;
 import semulator.logic.execution.ExecutionContext;
+import semulator.logic.expansion.ExpansionIdAllocator;
 import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
 import semulator.logic.variable.Variable;
@@ -28,9 +29,13 @@ public class NeutralInstruction extends AbstractInstruction {
     }
 
     @Override
+    public void InitializeIProgramInstruction (ExpansionIdAllocator ex)    {
+    }
+
+    @Override
     public String toDisplayString()
     {
-        return String.format("#%d (%s) [ %-5s ]  %s <- %s (%d)",
+        return String.format("#%d (%s) [%-5s]  %s <- %s (%d)",
                 this.getInstructionNumber(),
                 this.isBasic(),
                 this.getLabel().getLabelRepresentation(),

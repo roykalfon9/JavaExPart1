@@ -21,6 +21,10 @@ public class LabelImp implements Label {
         LabelImp other = (LabelImp) obj;
         return this.number == other.number;
     }
+    @Override
+    public int getNumber() {
+        return number;
+    }
 
     @Override
     public int hashCode() {

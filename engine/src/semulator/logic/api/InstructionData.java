@@ -35,6 +35,11 @@ public enum InstructionData {
         return cycles;
     }
 
+    public int degree() {
+        return degree;
+    }
+
+
     public String isBasic() {
         return isBasic;
     }

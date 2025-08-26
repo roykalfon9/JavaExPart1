@@ -22,5 +22,3 @@ public class RunRecord {
     public long getyFinal() { return yFinal; }
     public long getCycles() { return cycles; }
 }
-
-}

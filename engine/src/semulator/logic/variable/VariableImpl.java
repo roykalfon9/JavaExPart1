@@ -20,6 +20,9 @@ public class VariableImpl implements Variable {
     public String getRepresentation() {
         return type.getVariableRepresentation(number);
     }
+    @Override
+    public int getNumber() { return number; }
+
 
     @Override
     public boolean equals(Object o) {

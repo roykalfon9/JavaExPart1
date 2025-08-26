@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import semulator.logic.api.Sinstruction;
+import semulator.logic.execution.ProgramExecutorImpl;
 import semulator.logic.program.Sprogram;
 import semulator.logic.xml.xmlreader.XMLParser;
 
@@ -26,6 +28,8 @@ class SemulatorApp {
     private final List<RunRecord> runHistory = new ArrayList<>();
     private boolean programValid = false;
 
+    private String currentProgramName = "No program loaded.";
+
 
     public void start() {
 
@@ -37,8 +41,8 @@ class SemulatorApp {
             int choice = readMenuChoice(1, 6);
             switch (choice) {
                 case 1 -> handleLoadProgramFile();
-                //case 2 -> handleShowProgram();
-                //case 3 -> handleExpand();
+                case 2 -> handleShowProgram(currentProgram);
+                case 3 -> handleExpand(currentProgram);
                 //case 4 -> handleRunProgram();
                 //case 5 -> handleShowHistory();
                 //case 6 -> handleExit();
@@ -47,6 +51,126 @@ class SemulatorApp {
             System.out.println(); // spacing between loops
         }
     }
+
+    private void handleRunProgram() {
+
+    }
+
+    private void handleExpand(Sprogram currentProgram) {
+
+        if (currentProgram == null || !programValid) {
+            System.out.println(">> No valid program loaded. Please load a program first.");
+            pauseForEnter();
+            return;
+        }
+        if (currentProgram.getInstructions() == null || currentProgram.getInstructions().isEmpty()) {
+            System.out.println(">> Program has no instructions to expand.");
+            pauseForEnter();
+            return;
+        }
+
+        int maxDegree = currentProgram.calculateMaxDegree();
+
+        System.out.println("=== Expand Program ===");
+        System.out.println("Max degree for this program: " + maxDegree);
+
+        while (true) {
+            System.out.print("Enter expansion degree (0 - " + maxDegree +"). "
+                    + "Press N to load a new program, or X to return: ");
+
+            String line;
+            try {
+                line = scanner.nextLine();
+            } catch (Exception e) {
+                System.out.println("Input aborted. Returning to menu.");
+                return;
+            }
+            if (line == null) return;
+
+            line = line.trim();
+            if (line.equalsIgnoreCase("X")) {
+                return; // חזרה לתפריט
+            }
+            if (line.equalsIgnoreCase("N")) {
+                handleLoadProgramFile(); // טעינת קובץ חדש
+                return; // בסיום – חזרה לתפריט
+            }
+
+            try {
+                int degree = Integer.parseInt(line);
+                if (degree >= 0 && degree <= maxDegree) {
+                    System.out.println(">> Expansion degree selected: " + degree);
+
+                    if (degree>0)
+                    {
+                        Sprogram expandProgram = currentProgram.expand(degree);
+                        handleShowProgram(expandProgram);
+                    }
+                    else
+                    {
+                        currentProgram.setNumberInstructions();
+                        handleShowProgram(currentProgram);
+                    }
+
+                    pauseForEnter();
+                    return;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+
+            System.out.printf("Invalid input. Please enter a number between %d and %d, or N/X.%n",
+                    0, maxDegree);
+        }
+    }
+
+    private void handleShowProgram (Sprogram currentProgram)
+    {
+        if (currentProgram == null || !programValid) {
+            System.out.println(">> No valid program loaded. Please load a program first.");
+            pauseForEnter();
+            return;
+        }
+
+        System.out.println("=== Program ===");
+        System.out.println("Name: " + currentProgram.getName());
+
+        if (currentProgram.getInstructions() == null || currentProgram.getInstructions().isEmpty()) {
+            System.out.println("(Program has no instructions)");
+            pauseForEnter();
+            return;
+        }
+
+        System.out.println("Input variables used by the program (in order): ");
+        System.out.println(currentProgram.stringInputVariable());
+        System.out.println("Labels used by the program (in order; EXIT listed last if used): ");
+        System.out.println(currentProgram.stringLabelNamesWithExitLast());
+        System.out.println("");
+
+        for (int i=0; i<currentProgram.getInstructions().size(); i++)
+        {
+            System.out.print(currentProgram.getInstructions().get(i).toDisplayString());
+            if (currentProgram.getInstructions().get(i).getParentInstruction() != null)
+            {
+                printaParents(currentProgram.getInstructions().get(i).getParentInstruction());
+            }
+            System.out.println("");
+        }
+
+        pauseForEnter();
+    }
+
+    private void printaParents(Sinstruction instruction) {
+        if (instruction.getParentInstruction() == null) {
+            System.out.print(" >>> " + instruction.toDisplayString());;
+        }
+        else{
+            System.out.print( " >>> " + instruction.toDisplayString());;
+            printaParents(instruction.getParentInstruction());
+
+        }
+
+    }
+
 
     private void handleLoadProgramFile() {
 
@@ -105,7 +229,8 @@ class SemulatorApp {
             this.currentProgram = program;
             this.lastLoadedPath = path;
             runHistory.clear();
-            programValid = true;
+            this.programValid = true;
+            this.currentProgramName = currentProgram.getName();
 
             System.out.println(">> Program loaded successfully from:");
             System.out.println("   " + path);
@@ -139,6 +264,8 @@ class SemulatorApp {
     }
 
     private void printMenu() {
+        System.out.println("Current program: " + currentProgramName);
+        System.out.println("");
         System.out.println("=== Main Menu ===");
         System.out.println("1. Load program file");
         System.out.println("2. Show program");
