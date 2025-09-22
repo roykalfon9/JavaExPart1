@@ -1,11 +1,22 @@
 package semulator.display;
 
-import java.util.Scanner;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import java.util.Objects;
 
-public class Main {
-    public static void main(String[] args) {
+public class Main extends Application {
+    @Override public void start(Stage stage) throws Exception {
+        Parent root = FXMLLoader.load(Objects.requireNonNull(
+                Main.class.getResource("/semulator/userInterface/mainBar/MyFxmi.fxml")));
 
-        SemulatorApp semulatorApp = new SemulatorApp();
-        semulatorApp.start();
+        Scene scene = new Scene(root);
+
+        stage.setScene(scene);
+        stage.setTitle("S-emulator");
+        stage.show();
     }
+    public static void main(String[] args) { launch(args); }
 }

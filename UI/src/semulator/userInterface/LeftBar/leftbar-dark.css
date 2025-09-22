@@ -1,0 +1,158 @@
+/* leftbar-dark.css – מלא */
+
+/* שורש הלפט־בר (הוסף Class לשורש: leftbar) */
+.leftbar {
+    -color-bg: #1c1c1e;
+    -color-fg: #f5f5f7;
+    -color-subtle: rgba(255,255,255,0.15);
+    -color-border: rgba(255,255,255,0.12);
+    -color-accent: #0A84FF;
+    -color-accent-strong: #0b78ff;
+
+    -fx-background-color: -color-bg;
+    -fx-text-fill: -color-fg;
+    -fx-padding: 8 10 10 10;
+    -fx-spacing: 8;
+    -fx-font-family: "SF Pro Text","Segoe UI",system-ui,sans-serif;
+    -fx-font-size: 13px;
+}
+
+/* בר הכפתורים העליון (הוסף Class ל-HBox: leftbar-toolbar) */
+.leftbar .leftbar-toolbar {
+    -fx-spacing: 12;
+    -fx-padding: 6 6 10 6;
+    -fx-border-color: transparent transparent -color-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* כפתורים – “Glass Dark” */
+.leftbar-toolbar .button {
+    -fx-text-fill: -color-fg;
+    -fx-background-color:
+            linear-gradient(rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
+            linear-gradient(#2e2e33, #222226) !important;
+    -fx-background-insets: 0,1;
+    -fx-background-radius: 10;
+    -fx-padding: 7 14;
+    -fx-border-color: rgba(255,255,255,0.08);
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 8, 0.6, 0, 1);
+    -fx-cursor: hand;
+    -fx-font-weight: 600;
+}
+.leftbar-toolbar .button:hover {
+    -fx-background-color:
+            linear-gradient(rgba(255,255,255,0.10), rgba(255,255,255,0.04)),
+            linear-gradient(#38383d, #2a2a2f) !important;
+}
+.leftbar-toolbar .button:pressed {
+    -fx-background-insets: 1,0;
+    -fx-translate-y: 1;
+    -fx-effect: none;
+}
+.leftbar-toolbar .button:focused {
+    -fx-effect: dropshadow(gaussian, -color-accent, 10, 0.7, 0, 0);
+}
+.leftbar-toolbar .button:disabled {
+    -fx-opacity: 0.45;
+    -fx-effect: none;
+}
+
+/* וריאנטים */
+.leftbar-toolbar .button.accent {
+    -fx-text-fill: white;
+    -fx-background-color:
+            linear-gradient(#1f8eff, #0a76f0),
+            linear-gradient(#4aa6ff, -color-accent) !important;
+}
+.leftbar-toolbar .button.accent:hover {
+    -fx-background-color:
+            linear-gradient(#2897ff, #0f7ff5),
+            linear-gradient(#5cb0ff, #0b78ff) !important;
+}
+.leftbar-toolbar .button.tonal {
+    -fx-text-fill: -color-fg;
+    -fx-background-color:
+            linear-gradient(rgba(10,132,255,0.20), rgba(10,132,255,0.10)),
+            linear-gradient(#2b2d32, #23252a) !important;
+    -fx-border-color: rgba(10,132,255,0.25);
+}
+.leftbar-toolbar .button.tonal:hover {
+    -fx-background-color:
+            linear-gradient(rgba(10,132,255,0.28), rgba(10,132,255,0.14)),
+            linear-gradient(#343741, #292c34) !important;
+}
+
+/* הבלחת לחיצה זמנית: הוסף/הסר class="flash" מהבקר */
+.leftbar-toolbar .button.flash {
+    -fx-text-fill: white;
+    -fx-background-color:
+            linear-gradient(#2897ff, #0f7ff5),
+            linear-gradient(#5cb0ff, #0b78ff) !important;
+    -fx-effect: dropshadow(gaussian, rgba(10,132,255,0.6), 14, 0.7, 0, 0);
+}
+
+/* לייבל בין הטבלאות (fx:id=lblBetweenTables) */
+#lblBetweenTables {
+    -fx-text-fill: rgba(255,255,255,0.9);
+    -fx-font-weight: 700;
+    -fx-alignment: center;
+    -fx-padding: 6 0;
+    -fx-background-color: rgba(255,255,255,0.06);
+    -fx-background-radius: 6;
+    -fx-border-color: -color-border;
+    -fx-border-radius: 6;
+    -fx-letter-spacing: 0.3px;
+}
+
+/* טבלאות */
+.leftbar .table-view {
+    -fx-background-color: #2c2c2e;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+    -fx-padding: 6;
+    -fx-table-cell-border-color: -color-border;
+    -fx-control-inner-background: #2c2c2e;
+    -fx-control-inner-background-alt: #262628;
+    -fx-text-background-color: -color-fg;
+}
+.leftbar .table-view .column-header-background {
+    -fx-background-color: #333336;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10 10 0 0;
+    -fx-border-color: -color-border;
+    -fx-border-width: 0 0 1 0;
+}
+.leftbar .table-view .column-header,
+.leftbar .table-view .filler {
+    -fx-size: 28px;
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
+}
+.leftbar .table-view .column-header .label {
+    -fx-text-fill: -color-fg;
+    -fx-font-weight: 700;
+}
+.leftbar .table-row-cell { -fx-background-insets: 0; }
+.leftbar .table-row-cell:odd { -fx-background-color: #262628; }
+.leftbar .table-row-cell:selected {
+    -fx-background-color: -color-accent;
+    -fx-text-background-color: white;
+}
+.leftbar .table-row-cell:selected .text { -fx-fill: white; }
+.leftbar .table-cell {
+    -fx-padding: 6 8;
+    -fx-text-fill: -color-fg;
+    -fx-font-weight: 500;
+}
+
+/* סקרול־ברים */
+.leftbar .scroll-bar:vertical,
+.leftbar .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+.leftbar .scroll-bar .thumb {
+    -fx-background-color: -color-subtle;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
+}

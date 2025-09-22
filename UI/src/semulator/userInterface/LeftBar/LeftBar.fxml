@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="TOP_CENTER" minHeight="0.0" minWidth="0.0" prefHeight="451.0" prefWidth="744.0" spacing="8.0" styleClass="leftbar" stylesheets="@leftbar-dark.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="semulator.userInterface.LeftBar.LeftBarController">
+   <children>
+      <HBox fx:id="toolbar" alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="61.0" prefWidth="532.0" spacing="20.0" styleClass="leftbar-toolbar" VBox.vgrow="NEVER">
+         <children>
+            <Button fx:id="btnProgramSelector" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="56.0" prefWidth="148.0" text="Program/Function Selector" textAlignment="CENTER" wrapText="true" HBox.hgrow="NEVER">
+               <font>
+                  <Font size="10.0" />
+               </font>
+            </Button>
+            <Button fx:id="btnCollapse" contentDisplay="TOP" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="56.0" prefWidth="90.0" text="Collapse" HBox.hgrow="NEVER">
+               <font>
+                  <Font size="10.0" />
+               </font>
+            </Button>
+            <Button fx:id="btnExpand" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="56.0" prefWidth="90.0" text="Expand" HBox.hgrow="NEVER">
+               <font>
+                  <Font size="10.0" />
+               </font>
+            </Button>
+            <Button fx:id="btnCurrentMaxDegree" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="56.0" prefWidth="148.0" text="Current/Max Degree" HBox.hgrow="NEVER">
+               <font>
+                  <Font size="10.0" />
+               </font>
+            </Button>
+            <Button fx:id="btnHighlightSelection" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="56.0" prefWidth="148.0" text="Highelight Selection" HBox.hgrow="NEVER">
+               <font>
+                  <Font size="10.0" />
+               </font>
+            </Button>
+         </children>
+         <padding>
+            <Insets left="10.0" right="10.0" />
+         </padding>
+      </HBox>
+      <VBox VBox.vgrow="ALWAYS">
+         <children>
+            <TableView fx:id="tblInstructions" minHeight="-Infinity" minWidth="-Infinity" prefHeight="237.0" prefWidth="530.0" VBox.vgrow="ALWAYS">
+              <columns>
+                <TableColumn fx:id="colIdx" prefWidth="50.0" text="#" />
+                <TableColumn fx:id="colBS" prefWidth="50.0" text="B/S" />
+                  <TableColumn fx:id="colCycles" prefWidth="50.0" text="Cycles" />
+                  <TableColumn fx:id="colInstruction" prefWidth="379.0" text="Insruction" />
+              </columns>
+            </TableView>
+            <Label fx:id="lblBetweenTables" alignment="CENTER" contentDisplay="CENTER" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="31.0" prefWidth="532.0" text="aaa" textAlignment="JUSTIFY" textOverrun="CENTER_WORD_ELLIPSIS" VBox.vgrow="ALWAYS">
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </Label>
+            <TableView fx:id="tblHistory" prefHeight="96.0" prefWidth="532.0" VBox.vgrow="ALWAYS">
+               <columns>
+                  <TableColumn fx:id="colHIdx" prefWidth="50.0" text="#" />
+                  <TableColumn fx:id="colHBS" prefWidth="50.0" text="B/S" />
+                  <TableColumn fx:id="colHCycles" prefWidth="50.0" text="Cycles" />
+                  <TableColumn fx:id="colHInstruction" prefWidth="378.0" text="Insruction" />
+               </columns>
+            </TableView>
+         </children>
+      </VBox>
+   </children>
+</VBox>

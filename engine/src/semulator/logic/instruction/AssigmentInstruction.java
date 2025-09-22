@@ -90,12 +90,9 @@ public class AssigmentInstruction extends AbstractInstruction{
     @Override
     public String toDisplayString()
     {
-        return String.format("#%d (%s) [%-5s] %s <- %s (%d)",
-                this.getInstructionNumber(),
-                this.isBasic(),
+        return String.format(" %s <- %s",
                 this.getLabel().getLabelRepresentation(),
                 this.getVariable().getRepresentation().toLowerCase(),
-                this.secondaryVariable.getRepresentation().toLowerCase(),
-                this.cycles());
+                this.secondaryVariable.getRepresentation().toLowerCase());
     }
 }

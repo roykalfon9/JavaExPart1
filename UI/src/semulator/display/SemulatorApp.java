@@ -42,11 +42,30 @@ class SemulatorApp {
                 case 2 -> handleShowProgram(currentProgram);
                 case 3 -> handleExpand(currentProgram);
                 case 4 -> handleRunProgram(currentProgram);
-                //case 5 -> handleShowHistory();
-                //case 6 -> handleExit();
+                case 5 -> handleShowHistory();
+                case 6 -> handleExit();
                 default -> System.out.println("Invalid choice. Please try again.");
             }
             System.out.println(); // spacing between loops
+        }
+    }
+
+    private void handleExit() {
+        running = false;
+        return;
+    }
+
+    private void handleShowHistory() {
+
+        if (runHistory.isEmpty())
+        {
+            System.out.println("No history to show. Please load a program and run it.");
+        }
+        else {
+            for (RunRecord record : runHistory) {
+                record.print();
+                System.out.println("");
+            }
         }
     }
 
@@ -215,9 +234,7 @@ class SemulatorApp {
 
         RunRecord currentRecord = new RunRecord();
         currentRecord.record(runNumber, degree, parts, result,programToRun.calculateCycle());
-
-
-
+        runHistory.add(currentRecord);
     }
 
 

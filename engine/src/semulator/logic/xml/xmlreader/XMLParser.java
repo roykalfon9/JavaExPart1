@@ -55,12 +55,9 @@ public class XMLParser implements IXMLParser {
 
     private SProgram xmlToObject (String filePath) throws FileNotFoundException, JAXBException {
         SProgram program = null;
-        try {
+
             InputStream inputStream = new FileInputStream(new File(filePath));
             program = deserializeFrom(inputStream);
-        } catch (JAXBException | FileNotFoundException e) {
-            e.printStackTrace();
-        }
         return program;
     }
 
@@ -494,7 +491,7 @@ public class XMLParser implements IXMLParser {
         }
     }
 
-    private static void validateXmlFilePath(String filePath) throws Exception {
+    public static void validateXmlFilePath(String filePath) throws Exception {
         if (filePath == null || filePath.isBlank()) {
             throw new IllegalArgumentException("Path is null/blank.");
         }
