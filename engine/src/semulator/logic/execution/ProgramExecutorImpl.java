@@ -8,9 +8,7 @@ import semulator.logic.variable.Variable;
 import semulator.logic.variable.VariableImpl;
 import semulator.logic.variable.VariableType;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ProgramExecutorImpl implements ProgramExecuter{
 
@@ -98,4 +96,17 @@ public class ProgramExecutorImpl implements ProgramExecuter{
         }
         return false;
     }
+
+    public List<String> getInputLabelsNames()
+    {
+        List<String> inputLabels = new ArrayList<>();
+
+
+        for (Variable v : programVariableState.keySet()) {
+            if (v.getType() == VariableType.INPUT && !inputLabels.contains(v.getRepresentation()))
+                inputLabels.add(v.getRepresentation());
+        }
+        return inputLabels;
+    }
+
 }

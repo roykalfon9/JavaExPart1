@@ -46,13 +46,10 @@ public class JumpNotZeroInstruction extends AbstractInstruction {
     @Override
     public String toDisplayString()
     {
-        return String.format("#%d (%s) [%-5s] IF %s != 0 GOTO %s (%d)",
-                this.getInstructionNumber(),
-                this.isBasic(),
+        return String.format("[%-5s] IF %s != 0 GOTO %s",
                 this.getLabel().getLabelRepresentation(),
                 this.getVariable().getRepresentation().toLowerCase(),
-                this.jumpTo.getLabelRepresentation(),
-                this.cycles());
+                this.jumpTo.getLabelRepresentation());
     }
 
 }

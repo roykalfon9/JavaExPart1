@@ -18,4 +18,6 @@ public interface Sprogram {
     String stringLabelNamesWithExitLast();
     void setNumberInstructions();
     Sprogram expand(int degree);
+    int getBasicInstructionNumber();
+    int getSynteticInstructionNumber();
 }

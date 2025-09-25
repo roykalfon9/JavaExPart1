@@ -1,0 +1,20 @@
+/* theme-debug.css – דריסת צבעי accent לכל האפליקציה במצב DEBUG */
+
+/* טופ-בר */
+.debug-theme .topbar {
+    -color-accent: #FFB703;             /* צהוב נעים (Amber) */
+    -color-accent-weak: rgba(255,183,3,0.18);
+}
+
+/* שמאל */
+.debug-theme .leftbar {
+    -color-accent: #FFB703;
+    -color-accent-strong: #F59E0B;
+    -color-accent-weak: rgba(255,183,3,0.18);
+}
+
+/* ימין */
+.debug-theme .rightbar {
+    -color-accent: #FFB703;
+    -color-accent-weak: rgba(255,183,3,0.18);
+}

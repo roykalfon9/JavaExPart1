@@ -69,12 +69,9 @@ public class GoToLabelInstruction extends AbstractInstruction {
     @Override
     public String toDisplayString()
     {
-        return String.format("#%d (%s) [%-5s] GOTO %s (%d)",
-                this.getInstructionNumber(),
-                this.isBasic(),
+        return String.format("[%-5s] GOTO %s",
                 this.getLabel().getLabelRepresentation(),
-                this.jumpTo.getLabelRepresentation(),
-                this.cycles());
+                this.jumpTo.getLabelRepresentation());
     }
 
 }

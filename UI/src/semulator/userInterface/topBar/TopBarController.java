@@ -123,9 +123,23 @@ public class TopBarController {
 
     private void showError(String header, String content) {
         Alert a = new Alert(Alert.AlertType.ERROR);
+        a.initOwner(pathField.getScene().getWindow());
         a.setTitle("Error");
         a.setHeaderText(header);
         a.setContentText(content);
+
+        var dp = a.getDialogPane();
+
+        // נתיב נכון לקובץ שלך:
+        String dialogCss = getClass()
+                .getResource("/semulator/userInterface/mainBar/dialogs-dark.css")
+                .toExternalForm();
+        dp.getStylesheets().add(dialogCss);
+        dp.getStyleClass().add("app-dialog");
+
+        // אופציונלי:ורשה גם את ה-CSS הראשי של הסצנה
+        dp.getStylesheets().addAll(pathField.getScene().getStylesheets());
+
         a.showAndWait();
     }
 }

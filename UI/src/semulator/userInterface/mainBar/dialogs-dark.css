@@ -1,0 +1,127 @@
+/* dialogs-dark.css */
+
+/* בסיס – עובד גם אם לא הוספת app-dialog בקוד */
+.dialog-pane,
+.app-dialog {
+    /* צבעים */
+    -dlg-bg: #1c1c1e;
+    -dlg-fg: #f5f5f7;
+    -dlg-subtle: rgba(255,255,255,.55);
+    -dlg-border: rgba(255,255,255,.12);
+    -dlg-accent: #0A84FF;
+
+    -fx-background-color: -dlg-bg;
+    -fx-text-fill: -dlg-fg;
+    -fx-padding: 14;
+}
+
+/* ודא שכל האיזורים צבועים */
+.dialog-pane > *.content {
+    -fx-background-color: transparent;
+    -fx-text-fill: -dlg-fg;
+}
+.dialog-pane > .header-panel {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -dlg-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 0 10 0;
+}
+.dialog-pane:header .header-panel .label {
+    -fx-text-fill: -dlg-fg;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+/* תוכן/מלל רגיל */
+.dialog-pane .content,
+.dialog-pane .content .label,
+.dialog-pane .label {
+    -fx-text-fill: -dlg-fg;
+    -fx-font-size: 13px;
+}
+.dialog-pane .text,
+.dialog-pane .text-flow,
+.dialog-pane .text-flow .text {
+    -fx-fill: -dlg-fg;
+}
+
+/* כפתורים */
+.dialog-pane .button-bar {
+    -fx-background-color: transparent;
+    -fx-padding: 12 0 0 0;
+    -fx-border-color: -dlg-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+.dialog-pane .button-bar .button {
+    -fx-text-fill: -dlg-fg;
+    -fx-background-color:
+            linear-gradient(rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
+            linear-gradient(#2e2e33, #222226);
+    -fx-background-insets: 0,1;
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(255,255,255,0.10);
+    -fx-border-radius: 10;
+    -fx-padding: 7 14;
+    -fx-cursor: hand;
+    -fx-font-weight: 600;
+}
+.dialog-pane .button-bar .button:hover {
+    -fx-background-color:
+            linear-gradient(rgba(255,255,255,0.10), rgba(255,255,255,0.04)),
+            linear-gradient(#38383d, #2a2a2f);
+}
+.dialog-pane .button-bar .button:pressed {
+    -fx-background-insets: 1,0;
+    -fx-translate-y: 1;
+}
+.dialog-pane .button-bar .button:focused {
+    -fx-effect: dropshadow(gaussian, -dlg-accent, 10, 0.7, 0, 0);
+}
+
+/* כפתור ברירת־מחדל = הדגשה */
+.dialog-pane .button-bar .button:default {
+    -fx-text-fill: white;
+    -fx-background-color:
+            linear-gradient(#1f8eff, #0a76f0),
+            linear-gradient(#4aa6ff, -dlg-accent);
+}
+.dialog-pane .button-bar .button:default:hover {
+    -fx-background-color:
+            linear-gradient(#2897ff, #0f7ff5),
+            linear-gradient(#5cb0ff, #0b78ff);
+}
+
+/* שדות טקסט/גלילה אם יופיעו בדיאלוגים */
+.dialog-pane .text-input,
+.dialog-pane .text-field,
+.dialog-pane .text-area {
+    -fx-text-fill: -dlg-fg;
+    -fx-prompt-text-fill: rgba(255,255,255,0.45);
+    -fx-background-color: #2c2c2e;
+    -fx-background-insets: 0;
+    -fx-background-radius: 8;
+    -fx-border-color: #3A3A3C;
+    -fx-border-radius: 8;
+}
+.dialog-pane .text-input:focused,
+.dialog-pane .text-field:focused,
+.dialog-pane .text-area:focused {
+    -fx-border-color: -dlg-accent;
+    -fx-background-color: #1f1f21;
+}
+.dialog-pane .scroll-pane,
+.dialog-pane .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+.dialog-pane .scroll-bar .thumb {
+    -fx-background-color: -dlg-subtle;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
+}
+
+/* אייקונים (אם יש) */
+.dialog-pane .graphic-container .label,
+.dialog-pane .graphic-container .text {
+    -fx-fill: -dlg-fg;
+    -fx-text-fill: -dlg-fg;
+}

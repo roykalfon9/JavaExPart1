@@ -67,13 +67,11 @@ public class ConstantAssignmentInstruction extends AbstractInstruction{
     @Override
     public String toDisplayString()
     {
-        return String.format("#%d (%s) [%-5s] %s <- %d (%d)",
-                this.getInstructionNumber(),
-                this.isBasic(),
+        return String.format("[%-5s] %s <- %d",
                 this.getLabel().getLabelRepresentation(),
                 this.getVariable().getRepresentation().toLowerCase(),
-                this.getConstValue(),
-                this.cycles());
+                this.getConstValue()
+                );
     }
 
 }

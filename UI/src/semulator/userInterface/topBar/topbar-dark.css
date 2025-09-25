@@ -1,10 +1,15 @@
 /* topbar-dark.css */
+
+/* שורש הטופ־בר: משתני ברירת־מחדל */
 .topbar {
     -color-bg: rgba(28,28,30,0.92);
     -color-fg: #f5f5f7;
     -color-subtle: rgba(255,255,255,0.28);
     -color-border: rgba(255,255,255,0.12);
+
+    /* Accent ברירת־מחדל – כחול */
     -color-accent: #0A84FF;
+    -color-accent-weak: rgba(10,132,255,0.18);
 
     -fx-background-color: -color-bg;
     -fx-padding: 6 10;
@@ -15,6 +20,7 @@
     -fx-border-color: transparent transparent -color-border transparent;
     -fx-border-width: 0 0 1 0;
 }
+
 .topbar .button {
     -fx-text-fill: -color-fg;
     -fx-background-radius: 8;
@@ -26,6 +32,7 @@
 .topbar .button:pressed { -fx-background-color: rgba(255,255,255,0.16); }
 .topbar .button:focused { -fx-effect: dropshadow(gaussian, -color-accent, 8, 0.6, 0, 0); }
 
+/* שדה המסלול */
 .topbar .path-field {
     -fx-text-fill: -color-fg;
     -fx-prompt-text-fill: rgba(255,255,255,0.45);

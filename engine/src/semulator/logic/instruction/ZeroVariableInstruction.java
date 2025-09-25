@@ -58,12 +58,9 @@ public class ZeroVariableInstruction extends AbstractInstruction {
     }
         public String toDisplayString()
         {
-            return String.format("#%d (%s) [%-5s]  %s <- 0 (%d)",
-                    this.getInstructionNumber(),
-                    this.isBasic(),
+            return String.format("[%-5s]  %s <- 0",
                     this.getLabel().getLabelRepresentation(),
-                    this.getVariable().getRepresentation().toLowerCase(),
-                    this.cycles());
+                    this.getVariable().getRepresentation().toLowerCase());
         }
     }
 

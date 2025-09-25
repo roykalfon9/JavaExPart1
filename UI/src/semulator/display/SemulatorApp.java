@@ -1,3 +1,4 @@
+/*
 package semulator.display;
 
 import java.nio.file.Files;
@@ -233,7 +234,7 @@ class SemulatorApp {
         //-------------------------------------------------------------------------------------------------------- עדכון היסטוריה
 
         RunRecord currentRecord = new RunRecord();
-        currentRecord.record(runNumber, degree, parts, result,programToRun.calculateCycle());
+        currentRecord.record(lastLoadedPath ,runNumber, degree, parts, result,programToRun.calculateCycle());
         runHistory.add(currentRecord);
     }
 
@@ -515,7 +516,4 @@ class SemulatorApp {
 
 
 }
-
-
-
-
+*/

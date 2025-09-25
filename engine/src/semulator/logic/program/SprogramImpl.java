@@ -54,6 +54,32 @@ public class SprogramImpl implements Sprogram {
     }
 
     @Override
+    public int getBasicInstructionNumber()
+    {
+        int num = 0;
+        for (Sinstruction instruction : instructions) {
+            if (instruction.isBasic().equalsIgnoreCase("B"))
+            {
+                num++;
+            }
+        }
+        return num;
+    }
+
+    @Override
+    public int getSynteticInstructionNumber()
+    {
+        int num = 0;
+        for (Sinstruction instruction : instructions) {
+            if(instruction.isBasic().equalsIgnoreCase("S"))
+            {
+                num++;
+            }
+        }
+        return num;
+    }
+
+    @Override
     public boolean validate() {
         for (Sinstruction instruction : instructions)
         {

@@ -90,7 +90,7 @@ public class AssigmentInstruction extends AbstractInstruction{
     @Override
     public String toDisplayString()
     {
-        return String.format(" %s <- %s",
+        return String.format("[%-5s] %s <- %s",
                 this.getLabel().getLabelRepresentation(),
                 this.getVariable().getRepresentation().toLowerCase(),
                 this.secondaryVariable.getRepresentation().toLowerCase());
