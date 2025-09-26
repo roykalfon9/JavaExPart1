@@ -121,6 +121,39 @@ public class TopBarController {
         return s;
     }
 
+    // הוסף במחלקת TopBarController:
+
+    public void loadProgramFromPath(String path, Runnable onSuccess) {
+        // זהה לזרימת ה-Task הקיימת אצלך (validate + parse + app.onProgramLoaded)
+        // רק שבסיום מוצלח מזמינים גם onSuccess.run() אם לא null.
+        // דוגמה כללית (התאם לקוד שלך):
+        Window owner = (pathField != null && pathField.getScene()!=null) ? pathField.getScene().getWindow() : null;
+        Stage progressStage = createProgressStage(owner);
+        Task<Sprogram> task = new Task<>() {
+            @Override protected Sprogram call() throws Exception {
+                updateMessage("Validating path…");
+                XMLParser.validateXmlFilePath(path);
+                updateMessage("Parsing XML…");
+                XMLParser parser = new XMLParser();
+                return parser.loadProgramFromXML(path);
+            }
+        };
+        task.setOnSucceeded(ev -> {
+            progressStage.close();
+            Sprogram program = task.getValue();
+            if (app != null) app.onProgramLoaded(program, path);
+            if (onSuccess != null) onSuccess.run();
+        });
+        task.setOnFailed(ev -> {
+            progressStage.close();
+            Throwable ex = task.getException();
+            showError("Failed to load XML", (ex!=null && ex.getMessage()!=null)? ex.getMessage(): String.valueOf(ex));
+        });
+        progressStage.show();
+        new Thread(task, "xml-load-task").start();
+    }
+
+
     private void showError(String header, String content) {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.initOwner(pathField.getScene().getWindow());

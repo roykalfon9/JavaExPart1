@@ -3,10 +3,16 @@ package semulator.userInterface.mainBar;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.stage.StageStyle;
+import semulator.display.RunRecord;
 import semulator.logic.program.Sprogram;
-import semulator.userInterface.topBar.TopBarController;
 import semulator.userInterface.LeftBar.LeftBarController;
 import semulator.userInterface.rightBar.RightBarController;
+import semulator.userInterface.topBar.TopBarController;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AppController {
 
@@ -14,6 +20,10 @@ public class AppController {
     private Sprogram currentProgram;
     private int maxDegree = 0;
 
+    // --- היסטוריה + נתיב אחרון שנטעין ---
+    private final List<RunRecord> history = new ArrayList<>();
+    private int runCounter = 0;
+    private Path lastSourcePath = null;
 
     @FXML private TopBarController topBarController;
     @FXML private LeftBarController leftBarController;
@@ -21,12 +31,9 @@ public class AppController {
 
     @FXML
     private void initialize() {
-        if (topBarController != null) {
-            topBarController.setAppController(this);
-        }
-        if (leftBarController != null) {
-            leftBarController.setAppController(this);
-        }
+        if (topBarController != null) topBarController.setAppController(this);
+        if (leftBarController != null) leftBarController.setAppController(this);
+        if (rightBarController != null) rightBarController.setAppController(this);
     }
 
     /** יקרא מטופ־בר לאחר טעינת XML מוצלחת */
@@ -34,39 +41,32 @@ public class AppController {
         this.baseProgram = program;
         this.currentProgram = program;
         this.maxDegree = (program != null) ? program.calculateMaxDegree() : 0;
-        leftBarController.resetExpandLevel();
 
+        this.lastSourcePath = (sourcePath != null && !sourcePath.isBlank())
+                ? Paths.get(sourcePath)
+                : null;
 
-        if (leftBarController != null)  leftBarController.bindProgram(program);
-        if (rightBarController != null) rightBarController.bindProgram(program);
+        if (leftBarController != null)  { leftBarController.resetExpandLevel(); leftBarController.bindProgram(program); }
+        if (rightBarController != null) { rightBarController.bindProgram(program); }
     }
-
 
     public void requestExpandTo(int level, LeftBarController origin) {
         if (baseProgram == null) { showError("No program loaded","Please load a program first."); return; }
         if (level > maxDegree) {
             origin.setCurrExpandLevel(level-1);
-            showError("Cannot expand","Current expand level equals or exceeds program max degree ("+maxDegree+")."); return;
+            showError("Cannot expand","Current expand level equals/exceeds program max degree ("+maxDegree+")."); return;
         }
         if (level < 0) {
             origin.setCurrExpandLevel(level+1);
-            showError("Cannot expand","Current expand level equals or exceeds program min degree 0."); return;
+            showError("Cannot collapse","Min degree is 0."); return;
         }
 
-
         try {
-            Sprogram expanded;
-            if (level == 0) {
-                expanded = this.baseProgram;
-            }
-            else
-            {
-                expanded = baseProgram.expand(level);
-                this.currentProgram = expanded;
-            }
+            Sprogram expanded = baseProgram.expand(level);
+            this.currentProgram = expanded;
 
-            leftBarController.bindProgram(expanded, true);
-            rightBarController.bindProgram(expanded);
+            if (leftBarController  != null) leftBarController.bindProgram(expanded, true);
+            if (rightBarController != null) rightBarController.bindProgram(expanded);
 
         } catch (Exception ex) {
             showError("Expand failed", ex.getMessage() != null ? ex.getMessage() : ex.toString());
@@ -87,9 +87,40 @@ public class AppController {
         a.showAndWait();
     }
 
-    public int getMaxDegree() {
-        return maxDegree; // מחושב ב-onProgramLoaded מה-baseProgram בלבד
+    public int getMaxDegree() { return maxDegree; }
+    public Sprogram getCurrentProgram() { return currentProgram; }
+    public Path getLastSourcePath() { return lastSourcePath; }
+    public int getCurrentExpandLevel() {
+        return (leftBarController != null) ? leftBarController.getCurrExpandLevel() : 0;
     }
 
+    // --- היסטוריה: הוספה + הפצה גם לימין ---
+    public void addRunRecord(RunRecord rec) {
+        history.add(rec);
+        if (rightBarController != null) rightBarController.addRunRecord(rec);  // ⟵ עיקרי: טבלת הימין
+    }
 
+    public int nextRunNumber() { runCounter += 1; return runCounter; }
+
+    // לשימוש הימני בלחצני Show/Rerun אם צריך גישה לרשומות כלליות
+    public RunRecord getLastRunRecord() { return history.isEmpty() ? null : history.get(history.size()-1); }
+
+    // --- RERUN מ־RightBar: טעינה לפי נתיב (אם שונה), מילוי אינפוטים והרצה בלי היסטוריה ---
+    public void rerunRecord(RunRecord rec) {
+        if (rec == null || rightBarController == null) return;
+
+        boolean needReload = (rec.getPath() != null && (lastSourcePath == null || !rec.getPath().equals(lastSourcePath)));
+
+        if (needReload && topBarController != null) {
+            // ⟶ נדרש לממש ב-TopBarController מתודה ציבורית שמטענת לפי נתיב ומזמינה callback בסיום:
+            //    public void loadProgramFromPath(String path, Runnable onSuccess)
+            topBarController.loadProgramFromPath(rec.getPath().toString(), () -> {
+                rightBarController.fillInputs(rec.getInputs());
+                rightBarController.triggerStartWithoutHistory();
+            });
+        } else {
+            rightBarController.fillInputs(rec.getInputs());
+            rightBarController.triggerStartWithoutHistory();
+        }
+    }
 }

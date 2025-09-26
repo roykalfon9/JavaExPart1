@@ -86,10 +86,10 @@
                   <Font size="18.0" />
                </font>
             </Label>
-            <TableView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="150.0" prefWidth="301.0" VBox.vgrow="ALWAYS">
+            <TableView fx:id="tblRunHistoryRight" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="150.0" prefWidth="301.0" VBox.vgrow="ALWAYS">
               <columns>
-                <TableColumn prefWidth="75.0" text="#" />
-                <TableColumn prefWidth="158.0" text="ProgramName" />
+                <TableColumn fx:id="colRunIndexRight" prefWidth="75.0" text="#" />
+                <TableColumn fx:id="colRunProgramRight" prefWidth="158.0" text="ProgramName" />
               </columns>
                <padding>
                   <Insets bottom="10.0" />

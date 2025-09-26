@@ -22,7 +22,7 @@ public class RunRecord {
     private long cycles;       // כמות ה-cycles שנצרכו
 
 
-    public void Record(int i, String ProgramName, Path path, int degree, String[] inputs, long yFinal, long cycles, Map<Variable, Long> programVariableState) {
+    public void record(int i, String ProgramName, Path path, int degree, String[] inputs, long yFinal, long cycles, Map<Variable, Long> programVariableState) {
 
         this.runNumber = i;
         this.ProgramName = ProgramName;
@@ -34,10 +34,13 @@ public class RunRecord {
         this.programVariableState = programVariableState;
     }
 
+    public String getProgramName() {return ProgramName;}
     public Path getPath() { return this.path; }
     public int getRunNumber() { return this.runNumber; }
     public int getDegree() { return this.degree; }
     public String[] getInputs() { return this.inputs; }
     public long getyFinal() { return this.yFinal; }
-    public long getcycles() { return this.cycles; }
+    public long getCycles() { return this.cycles; }
+
+    public Map<Variable, Long> getProgramVariableState() {return programVariableState;}
 }
