@@ -16,13 +16,14 @@ import java.util.Map;
 public class ProgramDebuggerImple implements ProgramExecuter {
 
     private final Sprogram program;
-    private Map<Variable, Long> programVariableState =  new LinkedHashMap<>();
+    private Map<Variable, Long> programVariableState  = new LinkedHashMap<>();
     private ExecutionContext context;
     private int instructionIndex = 0;
     private boolean isOver = false;
     private Long result = 0L;
-    private Variable lastVariableChange = null;
 
+    private Variable lastVariableChange = null;
+    private Variable lastSecondaryVariableChange = null; // ADDED
 
     public ProgramDebuggerImple(Sprogram program){
         this.program = program;
@@ -44,6 +45,11 @@ public class ProgramDebuggerImple implements ProgramExecuter {
             }
         }
         context = new ExecutionContextImpl(programVariableState);
+        isOver = false;
+        instructionIndex = 0;
+        lastVariableChange = null;
+        lastSecondaryVariableChange = null;
+        result = 0L;
         return 0;
     }
 
@@ -54,19 +60,19 @@ public class ProgramDebuggerImple implements ProgramExecuter {
         if (program.getInstructions().isEmpty()) {
             this.isOver = true;
         }
-
         else {
-
             Sinstruction currentInstruction = program.getInstructions().get(instructionIndex);
-            nextLabe = currentInstruction.execute(context);
+
+            // שמירת ה"משתנים הרלוונטיים" של הפקודה האחרונה לצורך היילייט // ADDED
             this.lastVariableChange = currentInstruction.getVariable();
+            this.lastSecondaryVariableChange = currentInstruction.getSecondaryVariable();
+
+            nextLabe = currentInstruction.execute(context);
 
             if (nextLabe == FixedLabel.EMPTY) {
                 instructionIndex++;
-                // next instruction
             } else if (nextLabe != FixedLabel.EXIT) {
                 instructionIndex = program.findInstructionIndexByLabel(nextLabe);
-                // do find instruction by label in program
             }
 
             if (instructionIndex == program.getInstructions().size() || nextLabe == FixedLabel.EXIT)
@@ -102,8 +108,6 @@ public class ProgramDebuggerImple implements ProgramExecuter {
     public List<String> getInputLabelsNames()
     {
         List<String> inputLabels = new ArrayList<>();
-
-
         for (Variable v : programVariableState.keySet()) {
             if (v.getType() == VariableType.INPUT && !inputLabels.contains(v.getRepresentation()))
                 inputLabels.add(v.getRepresentation());
@@ -115,4 +119,5 @@ public class ProgramDebuggerImple implements ProgramExecuter {
     public boolean isOver() {return isOver;}
     public Long getResult() {return result;}
     public Variable getLastVariableChange() {return lastVariableChange;}
+    public Variable getLastSecondaryVariableChange() {return lastSecondaryVariableChange;} // ADDED
 }

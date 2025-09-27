@@ -20,32 +20,34 @@ import java.util.List;
 
 public class LeftBarController {
 
+    // --- חיבור לאפליקציה (נדרש כדי לקרוא apply/show וכו׳) ---
     private AppController app;
     public void setAppController(AppController app) { this.app = app; }
 
+    // --- מודל ---
     private Sprogram program;
     private int currExpandLevel = 0;
 
     @FXML private HBox toolbar;
 
-    // Top toolbar
+    // כפתורי כלים
     @FXML private Button btnProgramSelector;
     @FXML private Button btnCollapse;
     @FXML private Button btnExpand;
     @FXML private Button btnCurrentMaxDegree;
     @FXML private Button btnHighlightSelection;
 
-    // Upper table
+    // טבלה עליונה – פקודות
     @FXML private TableView<Sinstruction> tblInstructions;
     @FXML private TableColumn<Sinstruction, Number>  colIdx;
     @FXML private TableColumn<Sinstruction, String>  colBS;
     @FXML private TableColumn<Sinstruction, Number>  colCycles;
     @FXML private TableColumn<Sinstruction, String>  colInstruction;
 
-    // Between tables
+    // לייבל בין הטבלאות
     @FXML private Label lblBetweenTables;
 
-    // Lower table (history/chain)
+    // טבלה תחתונה – היסטוריית "שרשרת הורים" (Highlight Selection)
     @FXML private TableView<Sinstruction> tblHistory;
     @FXML private TableColumn<Sinstruction, Number> colHIdx;
     @FXML private TableColumn<Sinstruction, String>  colHBS;
@@ -76,23 +78,23 @@ public class LeftBarController {
         colCycles.setCellValueFactory(c -> new ReadOnlyIntegerWrapper(c.getValue().cycles()));
         colInstruction.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().toDisplayString()));
 
-        // עמודות לטבלה התחתונה (היסטוריית/שרשרת הורים)  // NEW: הגדרת עמודות הטבלה התחתונה
-        colHIdx.setCellValueFactory(c -> new ReadOnlyIntegerWrapper(c.getValue().getInstructionNumber())); // NEW
-        colHBS.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().isBasic()));               // NEW
-        colHCycles.setCellValueFactory(c -> new ReadOnlyIntegerWrapper(c.getValue().cycles()));           // NEW
-        colHInstruction.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().toDisplayString())); // NEW
+        // עמודות לטבלה התחתונה (רשימת הורים)
+        colHIdx.setCellValueFactory(c -> new ReadOnlyIntegerWrapper(c.getValue().getInstructionNumber()));
+        colHBS.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().isBasic()));
+        colHCycles.setCellValueFactory(c -> new ReadOnlyIntegerWrapper(c.getValue().cycles()));
+        colHInstruction.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().toDisplayString()));
 
-        // חיבור רשימות הנתונים לטבלאות
+        // חיבור רשימות נתונים
         tblInstructions.setItems(rows);
-        tblHistory.setItems(historyRows); // NEW: חשוב לחיבור הטבלה התחתונה
+        tblHistory.setItems(historyRows);
 
         // ניקוי ראשוני
         rows.clear();
-        historyRows.clear(); // NEW
+        historyRows.clear();
         tblInstructions.setDisable(true);
         lblBetweenTables.setText("");
 
-        // NEW: מאזין לבחירה בטבלה העליונה – כל שינוי בחירה מנקה את הטבלה התחתונה
+        // חשוב: כל שינוי בחירה בטבלה העליונה מנקה את הטבלה התחתונה
         tblInstructions.getSelectionModel()
                 .selectedItemProperty()
                 .addListener((obs, oldSel, newSel) -> {
@@ -108,13 +110,14 @@ public class LeftBarController {
         pt.play();
     }
 
+    // מצמיד תוכנית; showNow=true יציג מייד את הטבלה העליונה
     public void bindProgram(Sprogram program) { bindProgram(program, false); }
 
     public void bindProgram(Sprogram program, boolean showNow) {
         this.program = program;
 
-        // ניקוי טבלאות בעת הצמדה של תוכנית חדשה  // NEW
-        historyRows.clear(); // NEW
+        // ניקוי טבלאות בעת הצמדה של תוכנית חדשה
+        historyRows.clear();
         rows.clear();
 
         if (this.program != null) this.program.setNumberInstructions();
@@ -127,7 +130,20 @@ public class LeftBarController {
         } else {
             tblInstructions.setDisable(true);
         }
+    }
 
+    // "Show Program" – מציג טבלה עליונה (נקרא מבחוץ בדיבאג Start)
+    public void showProgramNow() { onProgramSelection(); } // ← NEW
+
+    // הדגשת שורה לפי אינדקס 0-based (נקרא מבחוץ בדיבאג Step Over)
+    public void highlightInstructionByIndex(int zeroBasedIndex) { // ← NEW
+        if (tblInstructions.getItems() == null || tblInstructions.getItems().isEmpty()) return;
+        if (zeroBasedIndex < 0 || zeroBasedIndex >= tblInstructions.getItems().size()) {
+            tblInstructions.getSelectionModel().clearSelection();
+            return;
+        }
+        tblInstructions.getSelectionModel().select(zeroBasedIndex);
+        tblInstructions.scrollTo(zeroBasedIndex);
     }
 
     @FXML
@@ -136,8 +152,8 @@ public class LeftBarController {
         rows.setAll(program.getInstructions());
         tblInstructions.setDisable(false);
         if (!rows.isEmpty()) tblInstructions.getSelectionModel().select(0);
-
-        historyRows.clear(); // NEW: גם כאן ננקה את הטבלה התחתונה כשמראים/מרעננים את העליונה
+        // בכל הצגה/רענון של העליונה – מנקים תחתונה
+        historyRows.clear();
     }
 
     private void showDegreeDialog() {
@@ -176,7 +192,7 @@ public class LeftBarController {
     public int  getCurrExpandLevel() { return currExpandLevel; }
     public void resetExpandLevel() { this.currExpandLevel = 0; }
 
-    // לחיצה על Highlight – בונה שרשרת הורים ושופך לטבלה התחתונה
+    // לחיצה על Highlight – שרשרת הורים לתחתונה
     private void onHighlightClicked() {
         Sinstruction sel = tblInstructions.getSelectionModel().getSelectedItem();
         if (sel == null) {
@@ -187,7 +203,7 @@ public class LeftBarController {
         if (!historyRows.isEmpty()) tblHistory.getSelectionModel().select(0);
     }
 
-    /** בונה רשימת הורים מהבחירה עד השורש (הנבחר תחילה, אח״כ ההורה וכו׳) */
+    // בניית שרשרת הורים (הנבחר -> הורה -> הורה של הורה ...)
     private List<Sinstruction> buildParentChain(Sinstruction leaf) {
         List<Sinstruction> chain = new ArrayList<>();
         Sinstruction cur = leaf;
@@ -198,7 +214,7 @@ public class LeftBarController {
         return chain;
     }
 
-    // מציג ספירת פקודות בסיסיות/סינתטיות בלייבל שבין הטבלאות
+    // עדכון הלייבל בין הטבלאות – ספירת בסיסיות/סינתטיות
     private void updateCountsLabel() {
         if (program == null) {
             lblBetweenTables.setText("");
@@ -207,8 +223,8 @@ public class LeftBarController {
         int basic = program.getBasicInstructionNumber();
         int syn   = program.getSynteticInstructionNumber();
         lblBetweenTables.setText(
-                "The number of basic instructions in the program is: " + basic + " | The number of synthetic instructions in the program is: " + syn
+                "The number of basic instructions in the program is: " + basic +
+                        " | The number of synthetic instructions in the program is: " + syn
         );
     }
-
 }

@@ -20,20 +20,20 @@ public class AppController {
     private Sprogram currentProgram;
     private int maxDegree = 0;
 
-    // --- היסטוריה + נתיב אחרון שנטעין ---
+    // --- היסטוריה + נתיב אחרון ---
     private final List<RunRecord> history = new ArrayList<>();
     private int runCounter = 0;
     private Path lastSourcePath = null;
 
-    @FXML private TopBarController topBarController;
-    @FXML private LeftBarController leftBarController;
+    @FXML private TopBarController   topBarController;
+    @FXML private LeftBarController  leftBarController;
     @FXML private RightBarController rightBarController;
 
     @FXML
     private void initialize() {
-        if (topBarController != null) topBarController.setAppController(this);
+        if (topBarController  != null) topBarController.setAppController(this);
         if (leftBarController != null) leftBarController.setAppController(this);
-        if (rightBarController != null) rightBarController.setAppController(this);
+        if (rightBarController!= null) rightBarController.setAppController(this);
     }
 
     /** יקרא מטופ־בר לאחר טעינת XML מוצלחת */
@@ -46,7 +46,7 @@ public class AppController {
                 ? Paths.get(sourcePath)
                 : null;
 
-        if (leftBarController != null)  { leftBarController.resetExpandLevel(); leftBarController.bindProgram(program); }
+        if (leftBarController  != null) { leftBarController.resetExpandLevel(); leftBarController.bindProgram(program); }
         if (rightBarController != null) { rightBarController.bindProgram(program); }
     }
 
@@ -62,7 +62,16 @@ public class AppController {
         }
 
         try {
-            Sprogram expanded = baseProgram.expand(level);
+            Sprogram expanded;
+            if (level == 0)
+            {
+                 expanded = baseProgram;
+            }
+            else
+            {
+                 expanded = baseProgram.expand(level);
+            }
+
             this.currentProgram = expanded;
 
             if (leftBarController  != null) leftBarController.bindProgram(expanded, true);
@@ -97,23 +106,21 @@ public class AppController {
     // --- היסטוריה: הוספה + הפצה גם לימין ---
     public void addRunRecord(RunRecord rec) {
         history.add(rec);
-        if (rightBarController != null) rightBarController.addRunRecord(rec);  // ⟵ עיקרי: טבלת הימין
+        if (rightBarController != null) rightBarController.addRunRecord(rec);
     }
 
     public int nextRunNumber() { runCounter += 1; return runCounter; }
-
-    // לשימוש הימני בלחצני Show/Rerun אם צריך גישה לרשומות כלליות
     public RunRecord getLastRunRecord() { return history.isEmpty() ? null : history.get(history.size()-1); }
 
-    // --- RERUN מ־RightBar: טעינה לפי נתיב (אם שונה), מילוי אינפוטים והרצה בלי היסטוריה ---
+    // --- RERUN מ־RightBar ---
     public void rerunRecord(RunRecord rec) {
         if (rec == null || rightBarController == null) return;
 
         boolean needReload = (rec.getPath() != null && (lastSourcePath == null || !rec.getPath().equals(lastSourcePath)));
 
         if (needReload && topBarController != null) {
-            // ⟶ נדרש לממש ב-TopBarController מתודה ציבורית שמטענת לפי נתיב ומזמינה callback בסיום:
-            //    public void loadProgramFromPath(String path, Runnable onSuccess)
+            // צריך שתממש ב-TopBarController:
+            // public void loadProgramFromPath(String path, Runnable onSuccess)
             topBarController.loadProgramFromPath(rec.getPath().toString(), () -> {
                 rightBarController.fillInputs(rec.getInputs());
                 rightBarController.triggerStartWithoutHistory();
@@ -122,5 +129,10 @@ public class AppController {
             rightBarController.fillInputs(rec.getInputs());
             rightBarController.triggerStartWithoutHistory();
         }
+    }
+
+    /** נדרש לדיבאג כדי להדגיש שורה בלפט־בר */ // ADDED
+    public LeftBarController getLeftBarController() {
+        return leftBarController;
     }
 }
