@@ -1,8 +1,12 @@
 package semulator.logic.variable;
 
+import semulator.logic.execution.ExecutionContext;
+import semulator.logic.execution.ExecutionContextImpl;
+import semulator.logic.functionInput.FunctionInput;
+
 import java.util.Objects;
 
-public class VariableImpl implements Variable {
+public class VariableImpl implements Variable, FunctionInput {
 
     private VariableType type;
     private final int number;
@@ -42,4 +46,8 @@ public class VariableImpl implements Variable {
         return getRepresentation();
     }
 
+    @Override
+    public Long getValue(ExecutionContext context) {
+        return context.getVariablevalue(this);
+    }
 }

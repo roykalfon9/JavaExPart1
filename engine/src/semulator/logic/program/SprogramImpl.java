@@ -2,6 +2,7 @@ package semulator.logic.program;
 
 import semulator.logic.api.Sinstruction;
 import semulator.logic.expansion.ExpansionIdAllocator;
+import semulator.logic.functions.Function;
 import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
 import semulator.logic.variable.Variable;
@@ -13,12 +14,14 @@ public class SprogramImpl implements Sprogram {
 
     private final String name;
     private final List<Sinstruction> instructions;
+    private final List<Function> functions;
     private final Set<Label> labels;
 
     public SprogramImpl(String name) {
         this.name = name;
         this.instructions = new ArrayList<>();
         this.labels = new LinkedHashSet<>();
+        this.functions = new ArrayList<>();
     }
 
     @Override

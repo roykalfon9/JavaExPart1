@@ -12,7 +12,10 @@ public enum InstructionData {
     GOTO_LABEL("GOTO_LABEL",1,"S",1),
     ASSIGNMENT("ASSIGNMENT",4,"S",2),
     CONSTANT_ASSIGNMENT("CONSTANT_ASSIGNMENT",2,"S",2),
-    JUMP_EQUAL_VARIABLE("JUMP_EQUAL_VARIABLE",2,"S",3)
+    JUMP_EQUAL_VARIABLE("JUMP_EQUAL_VARIABLE",2,"S",3),
+    QUOTE("QUOTE", 5,"S",3),
+    JUMP_EQUAL_FUNCTION("JUMP_EQUAL_FUNCTION",6,"S",4)
+
     ;
 
     private final String name;
@@ -38,7 +41,6 @@ public enum InstructionData {
     public int degree() {
         return degree;
     }
-
 
     public String isBasic() {
         return isBasic;

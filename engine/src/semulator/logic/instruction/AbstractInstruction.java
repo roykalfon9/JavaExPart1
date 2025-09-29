@@ -10,7 +10,7 @@ import semulator.logic.variable.Variable;
 
 public abstract class AbstractInstruction implements Sinstruction {
 
-    private final InstructionData instructionData;
+    protected final InstructionData instructionData;
     private int instructionNumber;
     private final Label label;
     private final Variable variable;
