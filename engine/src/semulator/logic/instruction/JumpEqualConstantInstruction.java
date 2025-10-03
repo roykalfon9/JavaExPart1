@@ -87,7 +87,7 @@ public class JumpEqualConstantInstruction extends AbstractInstruction{
     @Override
     public String toDisplayString()
     {
-        return String.format("[%-5s] IF %s = %d GOTO %s",
+        return String.format("[%-5s]  IF %s = %d GOTO %s",
                 this.getLabel().getLabelRepresentation(),
                 this.getVariable().getRepresentation().toLowerCase(),
                 this.constValue,

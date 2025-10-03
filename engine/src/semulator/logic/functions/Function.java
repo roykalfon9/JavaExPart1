@@ -26,11 +26,12 @@ public class Function {
     private final Set<Label> labels;
     private List<Long> args = new ArrayList<>();
 
-    public Function(String name, String userName,Sprogram body) {
+    public Function(String name, String userName,Sprogram instructionExecuteProgram,Sprogram instructionProgram) {
         this.name = name;
         this.userName = userName;
         this.labels = new LinkedHashSet<>();
-        this.instructionExecuteProgram = body;
+        this.instructionExecuteProgram = instructionExecuteProgram;
+        this.instructionProgram = instructionProgram;
     }
 
     public String getName() {

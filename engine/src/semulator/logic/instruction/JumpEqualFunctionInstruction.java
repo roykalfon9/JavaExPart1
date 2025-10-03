@@ -1,11 +1,15 @@
 package semulator.logic.instruction;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
 import semulator.logic.api.InstructionData;
 import semulator.logic.api.Sinstruction;
 import semulator.logic.execution.ExecutionContext;
 import semulator.logic.execution.ProgramExecutorImpl;
 import semulator.logic.expansion.ExpansionIdAllocator;
-import semulator.logic.functionInput.ConstNumberInput;
 import semulator.logic.functionInput.FunctionInput;
 import semulator.logic.functions.Function;
 import semulator.logic.label.FixedLabel;
@@ -17,103 +21,113 @@ import semulator.logic.variable.Variable;
 import semulator.logic.variable.VariableImpl;
 import semulator.logic.variable.VariableType;
 
-import java.util.*;
-
 import static java.util.stream.Collectors.joining;
 
-public class QuoteInstruction extends AbstractInstruction implements FunctionInput {
+public class JumpEqualFunctionInstruction extends AbstractInstruction {
 
     private final Function mainFunction;
     private final List<FunctionInput> functionInputs = new ArrayList<>();
 
-    public QuoteInstruction(Variable variable, Function mainFunction) {
-        super(InstructionData.QUOTE, variable);
+    public JumpEqualFunctionInstruction(Variable variable, Label jumpTo, Function mainFunction) {
+        super(InstructionData.JUMP_EQUAL_FUNCTION, variable);
+        this.jumpTo = jumpTo;
         this.mainFunction = mainFunction;
     }
 
-    public QuoteInstruction(Variable variable, Function mainFunction, Label label) {
-        super(InstructionData.QUOTE, variable, label);
+    public JumpEqualFunctionInstruction(Variable variable, Label jumpTo,  Function mainFunction, Label label) {
+        super(InstructionData.JUMP_EQUAL_FUNCTION, variable, label);
+        this.jumpTo = jumpTo;
         this.mainFunction = mainFunction;
     }
 
-    public QuoteInstruction(Variable variable, Function mainFunction, Sinstruction parentInstruction) {
-        super(InstructionData.QUOTE, variable, parentInstruction);
+    public JumpEqualFunctionInstruction(Variable variable, Label jumpTo,  Function mainFunction, Sinstruction parentInstruction) {
+        super(InstructionData.JUMP_EQUAL_FUNCTION, variable, parentInstruction);
+        this.jumpTo = jumpTo;
         this.mainFunction = mainFunction;
     }
 
-    public QuoteInstruction(Variable variable, Function mainFunction, Sinstruction parentInstruction, Label label) {
-        super(InstructionData.QUOTE, variable, parentInstruction, label);
+    public JumpEqualFunctionInstruction(Variable variable, Label jumpTo,  Function mainFunction, Sinstruction parentInstruction, Label label) {
+        super(InstructionData.JUMP_EQUAL_FUNCTION, variable, parentInstruction, label);
+        this.jumpTo = jumpTo;
         this.mainFunction = mainFunction;
     }
 
+    // API לקלטים
     public void addFunctionInput(FunctionInput in) {
         functionInputs.add(in);
     }
-
-    public Function getMainFunction() {
-        return mainFunction;
-    }
-
     public List<FunctionInput> getFunctionInputs() {
-        return Collections.unmodifiableList(functionInputs);
+        return functionInputs;
     }
 
-    // -------- run-time --------
     @Override
     public Label execute(ExecutionContext context) {
+        if (mainFunction.getInstructionExecuteProgram() == null) {
+            throw new IllegalStateException("Function has no execute program.");
+        }
         List<Long> inputs = new ArrayList<>(functionInputs.size());
-        for (FunctionInput in : functionInputs) inputs.add(in.getValue(context));
+
+        for (FunctionInput in : functionInputs) {
+            inputs.add(in.getValue(context));
+        }
         long y = new ProgramExecutorImpl(mainFunction.getInstructionExecuteProgram())
                 .run(inputs.toArray(new Long[0]));
-        context.updateVariable(getVariable(), y);
-        return FixedLabel.EMPTY;
+
+        Long Var = context.getVariablevalue(this.getVariable());
+
+        if (y == Var)
+            return jumpTo;
+        else
+            return FixedLabel.EMPTY;
     }
 
-    // -------- display --------
     @Override
     public String toDisplayString() {
         String lbl = getLabel().getLabelRepresentation();
-        String dst = getVariable().getRepresentation().toLowerCase(Locale.ROOT);
-        return String.format("[%-5s]  %s <- %s", lbl, dst, toDisplay());
-    }
+        String dst = getVariable().getRepresentation().toLowerCase();
+        String jmp = jumpTo.getLabelRepresentation();
 
-    @Override
-    public String toDisplay() {
-        String fname = mainFunction.getUsherName();
-        if (functionInputs.isEmpty()) return String.format("(%s)", fname);
-        String args = functionInputs.stream().map(FunctionInput::toDisplay).collect(joining(", "));
-        return String.format("(%s , %s)", fname, args);
+        return String.format("[%-5s] IF %s = %s GOTO %s",
+                lbl,
+                dst,
+                toDisplay(),
+                jmp);
     }
 
     @Override
     public void InitializeIProgramInstruction(ExpansionIdAllocator ex) {
-        // Create program container
-        this.instructionProgram = new SprogramImpl("expand-quote:" + mainFunction.getName());
+        // שם תכנית ההרחבה
+        this.instructionProgram = new SprogramImpl("expand-jeqf:" + mainFunction.getName());
 
-        // ⬅️ IMPORTANT: keep the original label of this QUOTE (do NOT allocate a new one)
-        Label firstLbl = (this.getLabel() != FixedLabel.EMPTY) ? this.getLabel() : FixedLabel.EMPTY;
+        // אם לפקודה יש label – נצמיד אותו לפקודת הפרולוג הראשונה שניצור
+        Label firstLbl = (this.getLabel() != FixedLabel.EMPTY)
+                ? new LabelImp(ex.getLabelNumber())
+                : FixedLabel.EMPTY;
 
-        // Single local return label to replace all EXITs inside the function body
-        Label retLbl = new LabelImp(ex.getLabelNumber());
+        // לייבל חזרה מקומי שיחליף EXIT שבתוך גוף הפונקציה המצוטטת
+        Label Lret = new LabelImp(ex.getLabelNumber());
 
-        // Allocate temp args (WORK) and a temp return (WORK)
+        // מקצים WORK-args זמניים עבור ארגומנטי הפונקציה וכן WORK לתוצאה
         List<Variable> wArgs = new ArrayList<>(functionInputs.size());
         for (int i = 0; i < functionInputs.size(); i++) {
             wArgs.add(new VariableImpl(VariableType.WORK, ex.getWorkVariableNumber()));
         }
         Variable wRet = new VariableImpl(VariableType.WORK, ex.getWorkVariableNumber());
 
-        // -------- Prolog: load inputs into wArgs[i] --------
+        // --- פרולוג: טעינת הארגומנטים ל-wArgs[i] ---
         for (int i = 0; i < functionInputs.size(); i++) {
             FunctionInput in = functionInputs.get(i);
             Variable wi = wArgs.get(i);
             Sinstruction preload;
 
             if (in instanceof QuoteInstruction qi) {
+                // quote מקונן – משכפלים אותו ומעתיקים את ה־inputs שלו כמות־שהם (אין עטיפות אנונימיות)
                 QuoteInstruction nested = (firstLbl == FixedLabel.EMPTY)
                         ? new QuoteInstruction(wi, qi.getMainFunction(), this)
                         : new QuoteInstruction(wi, qi.getMainFunction(), this, firstLbl);
-                for (FunctionInput fi : qi.getFunctionInputs()) nested.addFunctionInput(fi);
+                for (FunctionInput fi : qi.getFunctionInputs()) {
+                    nested.addFunctionInput(fi);
+                }
                 preload = nested;
                 firstLbl = FixedLabel.EMPTY;
 
@@ -123,7 +137,7 @@ public class QuoteInstruction extends AbstractInstruction implements FunctionInp
                         : new AssigmentInstruction(wi, v, this, firstLbl);
                 firstLbl = FixedLabel.EMPTY;
 
-            } else if (in instanceof ConstNumberInput cni) {
+            } else if (in instanceof semulator.logic.functionInput.ConstNumberInput cni) {
                 long val = cni.getValue(null);
                 preload = (firstLbl == FixedLabel.EMPTY)
                         ? new ConstantAssignmentInstruction(wi, val, this)
@@ -131,68 +145,34 @@ public class QuoteInstruction extends AbstractInstruction implements FunctionInp
                 firstLbl = FixedLabel.EMPTY;
 
             } else {
-                // Fallback: parse display-string into Var/Const (handles XMLParser$1, etc.)
-                String s = (in.toDisplay() == null ? "" : in.toDisplay()).trim().toUpperCase(Locale.ROOT);
-                Sinstruction made = null;
-
-                if ("Y".equals(s)) {
-                    Variable parsed = new VariableImpl(VariableType.RESULT, 1);
-                    made = (firstLbl == FixedLabel.EMPTY)
-                            ? new AssigmentInstruction(wi, parsed, this)
-                            : new AssigmentInstruction(wi, parsed, this, firstLbl);
-
-                } else if (!s.isEmpty()) {
-                    char c = s.charAt(0);
-                    String digits = (s.length() > 1) ? s.substring(1) : "";
-                    boolean onlyDigits = !digits.isEmpty() && digits.chars().allMatch(Character::isDigit);
-
-                    if ((c == 'X' || c == 'Y' || c == 'W' || c == 'Z') && onlyDigits) {
-                        int num = Integer.parseInt(digits);
-                        VariableType t = (c == 'X') ? VariableType.INPUT
-                                : (c == 'Y') ? VariableType.RESULT
-                                : VariableType.WORK;
-                        Variable parsed = new VariableImpl(t, num);
-                        made = (firstLbl == FixedLabel.EMPTY)
-                                ? new AssigmentInstruction(wi, parsed, this)
-                                : new AssigmentInstruction(wi, parsed, this, firstLbl);
-
-                    } else if (s.chars().allMatch(Character::isDigit)) {
-                        long val = Long.parseLong(s);
-                        made = (firstLbl == FixedLabel.EMPTY)
-                                ? new ConstantAssignmentInstruction(wi, val, this)
-                                : new ConstantAssignmentInstruction(wi, val, this, firstLbl);
-                    }
-                }
-
-                if (made == null) {
-                    throw new IllegalStateException(
-                            "Unsupported FunctionInput type in QUOTE prolog: "
-                                    + in.getClass().getName() + " ('" + s + "')");
-                }
-                preload = made;
-                firstLbl = FixedLabel.EMPTY;
+                throw new IllegalStateException("Unsupported FunctionInput type in JEQF prolog: " + in.getClass().getName());
             }
 
             this.instructionProgram.addInstruction(preload);
         }
 
-        // -------- Clone function body with remaps --------
-        Map<Integer, Variable> xMap = new HashMap<>();   // Xn -> wArgs[n-1]
+        // --- שכפול גוף הפונקציה המצוטטת עם רימפוי של X/W/L ו-EXIT -> Lret ---
+        Map<Integer, Variable> xMap = new HashMap<>();      // Xn -> wArgs[n-1]
         for (int i = 0; i < wArgs.size(); i++) xMap.put(i + 1, wArgs.get(i));
-        Map<Integer, Variable> wMap = new HashMap<>();   // Wk (inside function) -> fresh WORK
-        Map<Integer, Label>    lMap = new HashMap<>();   // L# (inside function)  -> fresh L#
+        Map<Integer, Variable> wMap = new HashMap<>();      // Wk פנימי -> W חדש
+        Map<Integer, Label>    lMap = new HashMap<>();      // L# פנימי -> L# חדש
 
         for (Sinstruction src : mainFunction.getInstructionExecuteProgram().getInstructions()) {
-            Sinstruction cloned = cloneWithRemap(src, xMap, wRet, wMap, lMap, ex, retLbl);
+            Sinstruction cloned = cloneWithRemap(src, xMap, wRet, wMap, lMap, Lret, ex);
             this.instructionProgram.addInstruction(cloned);
         }
 
-        // -------- Local EXIT anchor, then final assignment to the QUOTE destination --------
-        this.instructionProgram.addInstruction(new NeutralInstruction(wRet, this, retLbl));
-        this.instructionProgram.addInstruction(new AssigmentInstruction(this.getVariable(), wRet, this));
+        // עוגן ל־EXIT המקומי (ננחת עליו בסוף הגוף)
+        this.instructionProgram.addInstruction(new NeutralInstruction(wRet, this, Lret));
+
+        // --- אפילוג: אם תוצאת הפונקציה שווה למשתנה ה־LHS של הפקודה – קפוץ ---
+        // (תיקון קריטי: משווים מול this.getVariable(), לא מול secondaryVariable שהיה null)
+        this.instructionProgram.addInstruction(
+                new JumpEqualVariableInstruction(wRet, jumpTo, this.getVariable(), this)
+        );
     }
 
-// ===== helpers =====
+    /* ======================= עוֹזרוֹת ======================= */
 
     private Variable remapVar(Variable v,
                               Map<Integer, Variable> xMap,
@@ -203,22 +183,28 @@ public class QuoteInstruction extends AbstractInstruction implements FunctionInp
         switch (v.getType()) {
             case INPUT: {
                 Variable repl = xMap.get(v.getNumber());
-                if (repl == null) repl = new VariableImpl(VariableType.WORK, ex.getWorkVariableNumber());
+                if (repl == null) {
+                    repl = new VariableImpl(VariableType.WORK, ex.getWorkVariableNumber());
+                }
                 return repl;
             }
-            case RESULT: return wRet;
+            case RESULT:
+                return wRet;
             case WORK:
+                // Wk פנימי -> WORK חדש יציב
                 return wMap.computeIfAbsent(v.getNumber(),
                         k -> new VariableImpl(VariableType.WORK, ex.getWorkVariableNumber()));
-            default: return v;
+            default:
+                return v;
         }
     }
 
-    private Label remapJumpOrLabel(Label l, Map<Integer, Label> lMap,
-                                   ExpansionIdAllocator ex, Label retLbl) {
-        if (l == null) return null;
-        if (l == FixedLabel.EMPTY) return FixedLabel.EMPTY;
-        if (l == FixedLabel.EXIT)  return retLbl;               // map all EXITs to our local return
+    private Label remapLabel(Label l,
+                             Map<Integer, Label> lMap,
+                             Label Lret,
+                             ExpansionIdAllocator ex) {
+        if (l == null || l == FixedLabel.EMPTY) return l;
+        if (l == FixedLabel.EXIT) return Lret; // EXIT פנימי -> עוגן מקומי
         return lMap.computeIfAbsent(l.getNumber(), k -> new LabelImp(ex.getLabelNumber()));
     }
 
@@ -227,12 +213,13 @@ public class QuoteInstruction extends AbstractInstruction implements FunctionInp
                                         Variable wRet,
                                         Map<Integer, Variable> wMap,
                                         Map<Integer, Label> lMap,
-                                        ExpansionIdAllocator ex,
-                                        Label retLbl) {
-        Variable v1 = remapVar(ins.getVariable(), xMap, wRet, wMap, ex);
-        Variable v2 = remapVar(ins.getSecondaryVariable(), xMap, wRet, wMap, ex);
-        Label    L  = remapJumpOrLabel(ins.getLabel(),     lMap, ex, retLbl);
-        Label    J  = remapJumpOrLabel(ins.getJumpLabel(), lMap, ex, retLbl);
+                                        Label Lret,
+                                        ExpansionIdAllocator ex) {
+
+        Variable v1 = remapVar(ins.getVariable(),           xMap, wRet, wMap, ex);
+        Variable v2 = remapVar(ins.getSecondaryVariable(),  xMap, wRet, wMap, ex);
+        Label    L  = remapLabel(ins.getLabel(),            lMap, Lret, ex);
+        Label    J  = remapLabel(ins.getJumpLabel(),        lMap, Lret, ex);
 
         switch (ins.getName()) {
             case "INCREASE":            return (L == FixedLabel.EMPTY) ? new IncreaseInstruction(v1, this)              : new IncreaseInstruction(v1, this, L);
@@ -251,13 +238,16 @@ public class QuoteInstruction extends AbstractInstruction implements FunctionInp
                     : new JumpEqualVariableInstruction(v1, J, v2, this, L);
 
             case "QUOTE": {
-                if (!(ins instanceof QuoteInstruction qsrc))
+                // משכפלים QUOTE פנימי ושומרים על פונקציית־היעד שלו
+                if (!(ins instanceof QuoteInstruction qsrc)) {
                     throw new UnsupportedOperationException("QUOTE instance expected");
+                }
                 QuoteInstruction q = (L == FixedLabel.EMPTY)
                         ? new QuoteInstruction(v1, qsrc.getMainFunction(), this)
                         : new QuoteInstruction(v1, qsrc.getMainFunction(), this, L);
+
                 for (FunctionInput fi : qsrc.getFunctionInputs()) {
-                    q.addFunctionInput(remapInput(fi, xMap, wRet, wMap, lMap, ex));
+                    q.addFunctionInput(remapInput(fi, xMap, wRet, wMap, lMap, Lret, ex));
                 }
                 return q;
             }
@@ -272,61 +262,38 @@ public class QuoteInstruction extends AbstractInstruction implements FunctionInp
                                      Variable wRet,
                                      Map<Integer, Variable> wMap,
                                      Map<Integer, Label> lMap,
+                                     Label Lret,
                                      ExpansionIdAllocator ex) {
         if (fi instanceof Variable v) {
+            // חשוב: לעטוף בחזרה כ־FunctionInput – לא להחזיר Variable ישיר
             Variable rv = remapVar(v, xMap, wRet, wMap, ex);
             return new FunctionInput() {
                 @Override public Long getValue(ExecutionContext ctx) { return ctx.getVariablevalue(rv); }
-                @Override public String toDisplay() { return rv.getRepresentation().toLowerCase(Locale.ROOT); }
-                @Override public void addVar(Map<Variable, Long> m) { m.putIfAbsent(rv, 0L); }
+                @Override public String toDisplay() { return rv.getRepresentation().toLowerCase(java.util.Locale.ROOT); }
+                @Override public void addVar(Map<Variable, Long> programVariableState) { programVariableState.putIfAbsent(rv, 0L); }
             };
         }
         if (fi instanceof QuoteInstruction qi) {
+            // בונים Quote מקונן חדש וממפים את הארגומנטים שלו רקורסיבית
             QuoteInstruction nested = new QuoteInstruction(
                     new VariableImpl(VariableType.WORK, ex.getWorkVariableNumber()),
                     qi.getMainFunction(),
                     this
             );
             for (FunctionInput inner : qi.getFunctionInputs()) {
-                nested.addFunctionInput(remapInput(inner, xMap, wRet, wMap, lMap, ex));
+                nested.addFunctionInput(remapInput(inner, xMap, wRet, wMap, lMap, Lret, ex));
             }
             return nested;
         }
-        // constants remain as-is
+        // קבועים נשארים כפי שהם
         return fi;
     }
 
-
-
-    @Override
-    public Long getValue(ExecutionContext context) {
-        List<Long> inputs = new ArrayList<>(functionInputs.size());
-        for (FunctionInput in : functionInputs) inputs.add(in.getValue(context));
-        return new ProgramExecutorImpl(mainFunction.getInstructionExecuteProgram())
-                .run(inputs.toArray(new Long[0]));
-    }
-
-    @Override
-    public void addVar(Map<Variable, Long> programVariableState) {
-        for (FunctionInput in : functionInputs) in.addVar(programVariableState);
-    }
-
-    // -------- misc --------
-    public int getMaxVariableNumber() {
-        int max = 0;
-        for (FunctionInput in : functionInputs) {
-            if (in instanceof QuoteInstruction qi) {
-                max = Math.max(max, qi.getMaxVariableNumber());
-            } else if (in instanceof Variable l && l.getType() == VariableType.WORK) {
-                max = Math.max(max, l.getNumber());
-            }
-        }
-        return max;
-    }
-
-    @Override
-    public Sprogram getInstructionProgram() {
-        return this.instructionProgram;
+    public String toDisplay() {
+        String fname = mainFunction.getUsherName();
+        if (functionInputs.isEmpty()) return String.format("(%s)", fname);
+        String args = functionInputs.stream().map(FunctionInput::toDisplay).collect(joining(", "));
+        return String.format("(%s , %s)", fname, args);
     }
 
     @Override
@@ -347,4 +314,5 @@ public class QuoteInstruction extends AbstractInstruction implements FunctionInp
         }
         return max + 1;
     }
+
 }

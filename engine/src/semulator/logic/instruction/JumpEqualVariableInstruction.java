@@ -91,7 +91,7 @@ public class JumpEqualVariableInstruction extends AbstractInstruction{
     @Override
     public String toDisplayString()
     {
-        return String.format("[%-5s] IF %s = %s GOTO %s",
+        return String.format("[%-5s]  IF %s = %s GOTO %s",
                 this.getLabel().getLabelRepresentation(),
                 this.getVariable().getRepresentation().toLowerCase(),
                 this.getSecondaryVariable().getRepresentation().toLowerCase(),

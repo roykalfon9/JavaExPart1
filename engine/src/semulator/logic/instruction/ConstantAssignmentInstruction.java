@@ -67,7 +67,7 @@ public class ConstantAssignmentInstruction extends AbstractInstruction{
     @Override
     public String toDisplayString()
     {
-        return String.format("[%-5s] %s <- %d",
+        return String.format("[%-5s]  %s <- %d",
                 this.getLabel().getLabelRepresentation(),
                 this.getVariable().getRepresentation().toLowerCase(),
                 this.getConstValue()

@@ -1,6 +1,8 @@
 package semulator.logic.execution;
 
+import semulator.logic.api.InstructionData;
 import semulator.logic.api.Sinstruction;
+import semulator.logic.instruction.QuoteInstruction;
 import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
 import semulator.logic.program.Sprogram;
@@ -78,10 +80,15 @@ public class ProgramExecutorImpl implements ProgramExecuter{
         programVariableState.clear();
         for (int i = 0; i < program.getInstructions().size(); i++)
         {
-            programVariableState.put(program.getInstructions().get(i).getVariable(), 0L);
-            if (program.getInstructions().get(i).getSecondaryVariable() != null)
-            {
-                programVariableState.put(program.getInstructions().get(i).getSecondaryVariable(), 0L);
+            Sinstruction ins = program.getInstructions().get(i);
+
+            if (ins instanceof QuoteInstruction qi) {
+                qi.addVar(programVariableState);
+            } else {
+                programVariableState.put(ins.getVariable(), 0L);
+                if (ins.getSecondaryVariable() != null) {
+                    programVariableState.put(ins.getSecondaryVariable(), 0L);
+                }
             }
         }
             Variable y = new VariableImpl(VariableType.RESULT, 1);

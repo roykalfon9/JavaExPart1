@@ -46,7 +46,7 @@ public class DecreaseInstruction extends AbstractInstruction{
     @Override
      public String toDisplayString()
     {
-        return String.format("[%-5s] %s <- %s - 1",
+        return String.format("[%-5s]  %s <- %s - 1",
                 this.getLabel().getLabelRepresentation(),
                 this.getVariable().getRepresentation().toLowerCase(),
                 this.getVariable().getRepresentation().toLowerCase());

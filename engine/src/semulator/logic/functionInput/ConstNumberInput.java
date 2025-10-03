@@ -2,6 +2,9 @@ package semulator.logic.functionInput;
 
 import semulator.logic.execution.ExecutionContext;
 import semulator.logic.execution.ExecutionContextImpl;
+import semulator.logic.variable.Variable;
+
+import java.util.Map;
 
 public class ConstNumberInput implements FunctionInput {
 
@@ -17,7 +20,12 @@ public class ConstNumberInput implements FunctionInput {
     }
 
     @Override
-    public String toDisplayString() {
+    public String toDisplay() {
+        return Long.toString(value);
+    }
 
+    @Override
+    public void addVar(Map<Variable, Long> programVariableState) {
+        return;
     }
 }

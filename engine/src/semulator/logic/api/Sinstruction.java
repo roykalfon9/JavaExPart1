@@ -6,6 +6,8 @@ import semulator.logic.label.Label;
 import semulator.logic.program.Sprogram;
 import semulator.logic.variable.Variable;
 
+import java.util.Map;
+
 public interface Sinstruction {
 
 String getName();
@@ -24,5 +26,7 @@ String toDisplayString();
 Label getJumpLabel();
 long getConstValue();
 void InitializeIProgramInstruction (ExpansionIdAllocator ex);
+InstructionData getInstructionData();
+
 
 }

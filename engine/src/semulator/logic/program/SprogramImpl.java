@@ -38,6 +38,10 @@ public class SprogramImpl implements Sprogram {
         }
     }
 
+    public void addFunction(Function function) {
+        functions.add(function);
+    }
+
     @Override
     public List<Sinstruction> getInstructions() {
         return instructions;

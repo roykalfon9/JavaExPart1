@@ -8,6 +8,8 @@ import semulator.logic.program.Sprogram;
 import semulator.logic.program.SprogramImpl;
 import semulator.logic.variable.Variable;
 
+import java.util.Map;
+
 public abstract class AbstractInstruction implements Sinstruction {
 
     protected final InstructionData instructionData;
@@ -102,5 +104,8 @@ public abstract class AbstractInstruction implements Sinstruction {
     public int getInstructionNumber() {
         return instructionNumber;
     }
+
+    @Override
+    public InstructionData getInstructionData() {return instructionData;}
 
 }
