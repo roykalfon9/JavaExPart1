@@ -1,6 +1,7 @@
 package semulator.logic.program;
 
 import semulator.logic.api.Sinstruction;
+import semulator.logic.functions.Function;
 import semulator.logic.label.Label;
 
 import java.util.List;
@@ -20,4 +21,9 @@ public interface Sprogram {
     Sprogram expand(int degree);
     int getBasicInstructionNumber();
     int getSynteticInstructionNumber();
+    void addCycles(int instructionCycles);
+    void resetCycles();
+    void addFunction(Function function);
+    List<Function> getFunctions();
+    List<Function> getUseFunctions();
 }

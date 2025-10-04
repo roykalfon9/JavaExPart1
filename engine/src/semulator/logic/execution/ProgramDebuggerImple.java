@@ -35,6 +35,8 @@ public class ProgramDebuggerImple implements ProgramExecuter {
     public long run(Long... input)
     {
         insertRestartVariables();
+        this.program.resetCycles();
+
         if (input == null) input = new Long[0];
 
         int j = 0;
@@ -68,6 +70,8 @@ public class ProgramDebuggerImple implements ProgramExecuter {
             this.lastSecondaryVariableChange = currentInstruction.getSecondaryVariable();
 
             nextLabe = currentInstruction.execute(context);
+            this.program.addCycles(currentInstruction.cycles());
+
 
             if (nextLabe == FixedLabel.EMPTY) {
                 instructionIndex++;

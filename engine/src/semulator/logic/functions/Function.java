@@ -1,14 +1,7 @@
 package semulator.logic.functions;
 
-import semulator.logic.api.InstructionData;
-import semulator.logic.api.Sinstruction;
-import semulator.logic.execution.ExecutionContext;
-import semulator.logic.execution.ProgramExecutorImpl;
-import semulator.logic.expansion.ExpansionIdAllocator;
-import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
 import semulator.logic.program.Sprogram;
-import semulator.logic.variable.Variable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;

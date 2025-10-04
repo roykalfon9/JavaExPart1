@@ -2,7 +2,10 @@ package semulator.logic.program;
 
 import semulator.logic.api.Sinstruction;
 import semulator.logic.expansion.ExpansionIdAllocator;
+import semulator.logic.functionInput.FunctionInput;
 import semulator.logic.functions.Function;
+import semulator.logic.instruction.JumpEqualFunctionInstruction;
+import semulator.logic.instruction.QuoteInstruction;
 import semulator.logic.label.FixedLabel;
 import semulator.logic.label.Label;
 import semulator.logic.variable.Variable;
@@ -16,12 +19,14 @@ public class SprogramImpl implements Sprogram {
     private final List<Sinstruction> instructions;
     private final List<Function> functions;
     private final Set<Label> labels;
+    private int cycles;
 
     public SprogramImpl(String name) {
         this.name = name;
         this.instructions = new ArrayList<>();
         this.labels = new LinkedHashSet<>();
         this.functions = new ArrayList<>();
+        this.cycles = 0;
     }
 
     @Override
@@ -38,9 +43,53 @@ public class SprogramImpl implements Sprogram {
         }
     }
 
+    @Override
     public void addFunction(Function function) {
         functions.add(function);
     }
+
+    @Override
+    public List<Function> getFunctions() {return functions;}
+
+    @Override
+    public List<Function> getUseFunctions() {
+        Set<Function> out = new LinkedHashSet<>();
+        visitProgram(this, out); // this = Sprogram הנוכחי
+        return new ArrayList<>(out);
+    }
+
+    private static void visitProgram(Sprogram prog, Set<Function> out) {
+        for (Sinstruction ins : prog.getInstructions()) {
+            visitInstruction(ins, out);
+        }
+    }
+
+    private static void visitInstruction(Sinstruction ins, Set<Function> out) {
+        if (ins instanceof QuoteInstruction q) {
+            addAndRecurseFunction(q.getMainFunction(), out);
+
+            for (FunctionInput fi : q.getFunctionInputs()) {
+                if (fi instanceof QuoteInstruction nested) {
+                    visitInstruction(nested, out);
+                }
+            }
+        } else if (ins instanceof JumpEqualFunctionInstruction j) {
+            addAndRecurseFunction(j.getMainFunction(), out);
+            for (FunctionInput fi : j.getFunctionInputs()) {
+                if (fi instanceof QuoteInstruction nested) {
+                    visitInstruction(nested, out);
+                }
+            }
+        }
+    }
+
+    private static void addAndRecurseFunction(Function f, Set<Function> out) {
+        if (f == null || out.contains(f)) return;
+        out.add(f);
+        Sprogram body = f.getInstructionExecuteProgram(); // או השם המתאים אצלך
+        if (body != null) visitProgram(body, out);
+    }
+
 
     @Override
     public List<Sinstruction> getInstructions() {
@@ -117,12 +166,18 @@ public class SprogramImpl implements Sprogram {
 
     @Override
     public int calculateCycle() {
-        int totalCycles = 0;
-        for (Sinstruction instruction : instructions)
-        {
-            totalCycles += instruction.cycles();
-        }
-        return totalCycles;
+        return this.cycles;
+    }
+
+    @Override
+    public void addCycles(int instructionCycles)
+    {
+        this.cycles += instructionCycles;
+    }
+
+    @Override
+    public void resetCycles() {
+        this.cycles = 0;
     }
 
     @Override

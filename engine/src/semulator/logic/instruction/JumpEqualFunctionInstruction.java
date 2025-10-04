@@ -96,24 +96,19 @@ public class JumpEqualFunctionInstruction extends AbstractInstruction {
 
     @Override
     public void InitializeIProgramInstruction(ExpansionIdAllocator ex) {
+
         this.instructionProgram = new SprogramImpl("expand-jeqf:" + mainFunction.getName());
 
-        // אם ל-JEQF יש label, נצמיד אותו לפקודת הפרולוג הראשונה בלבד
         Label firstLbl = (this.getLabel() != FixedLabel.EMPTY)
                 ? new LabelImp(ex.getLabelNumber())
                 : FixedLabel.EMPTY;
 
-        // לייבל חזרה מקומי (מחליף EXIT מגוף הפונקציה)
-        Label Lret = new LabelImp(ex.getLabelNumber());
-
-        // הקצאת W-args ותוצאת פונקציה זמנית
         List<Variable> wArgs = new ArrayList<>(functionInputs.size());
         for (int i = 0; i < functionInputs.size(); i++) {
             wArgs.add(new VariableImpl(VariableType.WORK, ex.getWorkVariableNumber()));
         }
         Variable wRet = new VariableImpl(VariableType.WORK, ex.getWorkVariableNumber());
 
-        // --- פרולוג: טעינת הארגומנטים ל-wArgs[i] ---
         for (int i = 0; i < functionInputs.size(); i++) {
             FunctionInput in = functionInputs.get(i);
             Variable wi = wArgs.get(i);
@@ -147,25 +142,27 @@ public class JumpEqualFunctionInstruction extends AbstractInstruction {
             this.instructionProgram.addInstruction(preload);
         }
 
-        // --- שכפול גוף הפונקציה עם מיפוי עקבי של משתנים ולייבלים ---
+        Label Lret = new LabelImp(ex.getLabelNumber());
+
         Map<Integer, Variable> xMap = new HashMap<>(); // Xn -> wArgs[n-1]
         for (int i = 0; i < wArgs.size(); i++) xMap.put(i + 1, wArgs.get(i));
-        Map<Integer, Variable> wMap = new HashMap<>(); // Wk פנימי -> W חדש
-        Map<Integer, Label>    lMap = new HashMap<>(); // L# פנימי -> L# חדש
+        Map<Integer, Variable> wMap = new HashMap<>(); // WORK פנימיים -> WORK חדשים
+        Map<Integer, Label>    lMap = new HashMap<>(); // L# פנימיים -> L# חדשים
 
         for (Sinstruction src : mainFunction.getInstructionExecuteProgram().getInstructions()) {
             Sinstruction cloned = cloneWithRemap(src, xMap, wRet, wMap, lMap, Lret, ex);
             this.instructionProgram.addInstruction(cloned);
         }
 
-        // --- עוגן ל-EXIT המקומי (לא נוגע ב-wRet) ---
-        Variable wAnchor = new VariableImpl(VariableType.WORK, ex.getWorkVariableNumber());
-        this.instructionProgram.addInstruction(new NeutralInstruction(wAnchor, this, Lret));
+        this.instructionProgram.addInstruction(new NeutralInstruction(wRet, this, Lret));
 
-        // --- אפילוג: קפיצה אם תוצאת הפונקציה שווה למשתנה של ההוראה ---
-        // *** התיקון הקריטי: השוואה ל-getVariable() ולא ל-"secondaryVariable" ***
         this.instructionProgram.addInstruction(
-                new JumpEqualVariableInstruction(wRet, jumpTo, this.getVariable(), this)
+                new JumpEqualVariableInstruction(
+                        this.getVariable(),
+                        jumpTo,
+                        wRet,
+                        this
+                )
         );
     }
 
@@ -178,23 +175,29 @@ public class JumpEqualFunctionInstruction extends AbstractInstruction {
         switch (v.getType()) {
             case INPUT: {
                 Variable repl = xMap.get(v.getNumber());
-                if (repl == null)
+                if (repl == null) {
                     repl = new VariableImpl(VariableType.WORK, ex.getWorkVariableNumber());
+                }
                 return repl;
             }
             case RESULT:
                 return wRet;
+
             case WORK:
-                return wMap.computeIfAbsent(v.getNumber(),
-                        k -> new VariableImpl(VariableType.WORK, ex.getWorkVariableNumber()));
+                return wMap.computeIfAbsent(
+                        v.getNumber(),
+                        k -> new VariableImpl(VariableType.WORK, ex.getWorkVariableNumber())
+                );
+
             default:
                 return v;
         }
     }
 
     private Label remapLabel(Label l, Map<Integer, Label> lMap, Label Lret, ExpansionIdAllocator ex) {
-        if (l == null || l == FixedLabel.EMPTY) return l;
-        if (l == FixedLabel.EXIT) return Lret;
+        if (l == null) return null;
+        if (l == FixedLabel.EMPTY) return FixedLabel.EMPTY;
+        if (l == FixedLabel.EXIT)  return Lret; // כל EXIT פנימי יהפוך לעוגן המקומי
         return lMap.computeIfAbsent(l.getNumber(), k -> new LabelImp(ex.getLabelNumber()));
     }
 
@@ -205,10 +208,10 @@ public class JumpEqualFunctionInstruction extends AbstractInstruction {
                                         Map<Integer, Label> lMap,
                                         Label Lret,
                                         ExpansionIdAllocator ex) {
-        Variable v1 = remapVar(ins.getVariable(), xMap, wRet, wMap, ex);
-        Variable v2 = remapVar(ins.getSecondaryVariable(), xMap, wRet, wMap, ex);
-        Label    L  = remapLabel(ins.getLabel(),     lMap, Lret, ex);
-        Label    J  = remapLabel(ins.getJumpLabel(), lMap, Lret, ex);
+        Variable v1 = remapVar(ins.getVariable(),         xMap, wRet, wMap, ex);
+        Variable v2 = remapVar(ins.getSecondaryVariable(),xMap, wRet, wMap, ex);
+        Label    L  = remapLabel(ins.getLabel(),          lMap, Lret, ex);
+        Label    J  = remapLabel(ins.getJumpLabel(),      lMap, Lret, ex);
 
         switch (ins.getName()) {
             case "INCREASE":            return (L == FixedLabel.EMPTY) ? new IncreaseInstruction(v1, this)              : new IncreaseInstruction(v1, this, L);
@@ -225,6 +228,7 @@ public class JumpEqualFunctionInstruction extends AbstractInstruction {
                     : new JumpEqualConstantInstruction(v1, J, ins.getConstValue(), this, L);
             case "JUMP_EQUAL_VARIABLE": return (L == FixedLabel.EMPTY) ? new JumpEqualVariableInstruction(v1, J, v2, this)
                     : new JumpEqualVariableInstruction(v1, J, v2, this, L);
+
             case "QUOTE": {
                 if (!(ins instanceof QuoteInstruction qsrc))
                     throw new UnsupportedOperationException("QUOTE instance expected");
@@ -236,6 +240,21 @@ public class JumpEqualFunctionInstruction extends AbstractInstruction {
                 }
                 return q;
             }
+
+            case "JUMP_EQUAL_FUNCTION": {
+                if (!(ins instanceof JumpEqualFunctionInstruction jsrc))
+                    throw new UnsupportedOperationException("JEQF instance expected");
+
+                JumpEqualFunctionInstruction j = (L == FixedLabel.EMPTY)
+                        ? new JumpEqualFunctionInstruction(v1, J, jsrc.mainFunction, this)
+                        : new JumpEqualFunctionInstruction(v1, J, jsrc.mainFunction, this, L);
+
+                for (FunctionInput fi : jsrc.getFunctionInputs()) {
+                    j.addFunctionInput(remapInput(fi, xMap, wRet, wMap, lMap, Lret, ex));
+                }
+                return j;
+            }
+
             default:
                 throw new UnsupportedOperationException("Unsupported instruction: " + ins.getName());
         }
@@ -267,9 +286,9 @@ public class JumpEqualFunctionInstruction extends AbstractInstruction {
             }
             return nested;
         }
-        return fi; // קבועים וכו' — ללא שינוי
-    }
 
+        return fi;
+    }
 
     public String toDisplay() {
         String fname = mainFunction.getUsherName();
@@ -296,5 +315,14 @@ public class JumpEqualFunctionInstruction extends AbstractInstruction {
         }
         return max + 1;
     }
+
+    public Sprogram getMainFunctionProgram() {
+        return mainFunction.getInstructionExecuteProgram();
+    }
+
+    public Function getMainFunction() {
+        return mainFunction;
+    }
+
 
 }

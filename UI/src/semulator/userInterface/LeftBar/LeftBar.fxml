@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="TOP_CENTER" minHeight="0.0" minWidth="0.0" prefHeight="451.0" prefWidth="744.0" spacing="8.0" styleClass="leftbar" stylesheets="@leftbar-dark.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="semulator.userInterface.LeftBar.LeftBarController">
+<VBox alignment="TOP_CENTER" minHeight="0.0" minWidth="0.0" prefHeight="451.0" prefWidth="744.0" spacing="8.0" styleClass="leftbar" stylesheets="@leftbar-dark.css" xmlns="http://javafx.com/javafx/22.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="semulator.userInterface.LeftBar.LeftBarController">
    <children>
       <HBox fx:id="toolbar" alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="61.0" prefWidth="532.0" spacing="20.0" styleClass="leftbar-toolbar" VBox.vgrow="NEVER">
          <children>

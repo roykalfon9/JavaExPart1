@@ -22,12 +22,15 @@ public class ProgramExecutorImpl implements ProgramExecuter{
         this.program = program;
         insertRestartVariables();
         this.program.setNumberInstructions();
+        this.program.resetCycles();
     }
 
     @Override
     public long run(Long... input) {
 
         insertRestartVariables();
+        this.program.resetCycles();
+
         if (input == null) input = new Long[0];
 
         int j = 0;
@@ -51,6 +54,7 @@ public class ProgramExecutorImpl implements ProgramExecuter{
         do{
             Sinstruction currentInstruction = program.getInstructions().get(instructionIndex);
             nextLabe = currentInstruction.execute(context);
+            this.program.addCycles(currentInstruction.cycles());
 
             if (nextLabe == FixedLabel.EMPTY){
                 instructionIndex++;

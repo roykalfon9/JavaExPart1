@@ -4,6 +4,7 @@ import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -12,8 +13,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import semulator.display.RunRecord;
+import semulator.logic.execution.ProgramDebuggerImple;
 import semulator.logic.execution.ProgramExecutorImpl;
-import semulator.logic.execution.ProgramDebuggerImple; // ← דיבאג
 import semulator.logic.program.Sprogram;
 import semulator.logic.variable.Variable;
 import semulator.userInterface.mainBar.AppController;
@@ -22,72 +23,71 @@ import java.util.*;
 
 public class RightBarController {
 
-    // --- חיבור לאפליקציה ---
+    // --- App wiring ---
     private AppController app;
     public void setAppController(AppController app) { this.app = app; }
 
-    // --- מצב/מודל כללי ---
-    private Sprogram program;                      // התכנית הנוכחית (מקור/מורחבת)
-    private String  debugCssUrl;                   // תמת DEBUG (צהוב)
+    // --- Model ---
+    private Sprogram program;
+    private String  debugCssUrl;
 
     // --- EXECUTE ---
-    private ProgramExecutorImpl executor;          // מריץ מלא
+    private ProgramExecutorImpl executor;
 
     // --- DEBUG ---
-    private ProgramDebuggerImple debugger;         // מדבג צעד-אחר-צעד
-    private boolean debugActive = false;           // האם דיבאג החל (אחרי Start)
-    private int      lastHighlightedInstruction = -1;  // הדגשת פקודה בטבלה העליונה (שמאל)
-    private Set<String> lastHighlightedVars = Collections.emptySet(); // הדגשת משתנים ב-Vars
+    private ProgramDebuggerImple debugger;
+    private boolean debugActive = false;
+    private int lastHighlightedInstruction = -1;
+    private Set<String> lastHighlightedVars = Collections.emptySet();
 
-    // --- קלט מהמשתמש ---
-    private final Map<String, TextField> inputFields = new LinkedHashMap<>(); // שם משתנה -> TextField
-    private List<String> inputOrder = new ArrayList<>();                       // סדר קלטים
+    // --- Inputs ---
+    private final Map<String, TextField> inputFields = new LinkedHashMap<>();
+    private List<String> inputOrder = new ArrayList<>();
 
-    // --- כפתורים/טוגלים/תצוגה ---
-    @FXML private ToggleGroup modeGroup; // AccessibleText: EXECUTE / DEBUG
+    // --- UI refs ---
+    @FXML private ToggleGroup modeGroup; // EXECUTE / DEBUG (AccessibleText)
     @FXML private Button btnStart;
     @FXML private Button btnStop;
     @FXML private Button btnStepOver;
-    @FXML private Button btnShow;     // מציג פרטי ריצה (מהטבלה הימנית)
-    @FXML private Button btnRerun;    // Re-Run מרשומה נבחרת
+    @FXML private Button btnShow;
+    @FXML private Button btnRerun;
 
-    @FXML private Label  lblCycles;
-    @FXML private VBox   inputsBox;   // HBox-ים של קלטים (שמאל של אזור הסקרול)
-    @FXML private VBox   varsBox;     // HBox-ים של מצב משתנים (ימין של אזור הסקרול)
-    @FXML private Label  lblVarsTitle;
+    @FXML private Label lblCycles;
+    @FXML private VBox  inputsBox;
+    @FXML private VBox  varsBox;
+    @FXML private Label lblVarsTitle;
 
-    // --- טבלת היסטוריה הימנית (2 עמודות: #ריצה, שם תכנית) ---
-    @FXML private TableView<RunRecord>           tblRunHistoryRight;
-    @FXML private TableColumn<RunRecord,Number>  colRunIndexRight;
-    @FXML private TableColumn<RunRecord,String>  colRunProgramRight;
+    // history table (right)
+    @FXML private TableView<RunRecord>          tblRunHistoryRight;
+    @FXML private TableColumn<RunRecord,Number> colRunIndexRight;
+    @FXML private TableColumn<RunRecord,String> colRunProgramRight;
     private final javafx.collections.ObservableList<RunRecord> runRows =
             javafx.collections.FXCollections.observableArrayList();
 
-    // --- דגל: האם להוסיף היסטוריה (ב-ReRun לא) ---
     private boolean addToHistory = true;
 
     @FXML
     private void initialize() {
-        // אפקט "הבזק" קטן לכל הכפתורים
-        wireFlash(btnStart);
-        wireFlash(btnStop);
-        wireFlash(btnStepOver);
-        wireFlash(btnShow);
-        wireFlash(btnRerun);
+        // flash effect
+        attachFlash(btnStart);
+        attachFlash(btnStop);
+        attachFlash(btnStepOver);
+        attachFlash(btnShow);
+        attachFlash(btnRerun);
 
-        // חיבורים פונקציונליים
+        // handlers
         if (btnStart    != null) btnStart.setOnAction(e -> onStartClicked());
         if (btnStop     != null) btnStop.setOnAction(e -> onStopClicked());
         if (btnStepOver != null) btnStepOver.setOnAction(e -> onStepOverClicked());
         if (btnShow     != null) btnShow.setOnAction(e -> onShowClicked());
         if (btnRerun    != null) btnRerun.setOnAction(e -> onRerunClicked());
 
-        // טבלת היסטוריה ימנית
+        // history table
         if (tblRunHistoryRight != null) tblRunHistoryRight.setItems(runRows);
         if (colRunIndexRight   != null) colRunIndexRight.setCellValueFactory(c -> new ReadOnlyIntegerWrapper(c.getValue().getRunNumber()));
         if (colRunProgramRight != null) colRunProgramRight.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getProgramName()));
 
-        // החלת מצב (EXECUTE/DEBUG) כשה-Scene מצורף
+        // mode CSS / availability
         if (inputsBox != null) {
             inputsBox.sceneProperty().addListener((obs, o, n) -> { if (n != null) applyMode(); });
         }
@@ -97,18 +97,18 @@ public class RightBarController {
         Platform.runLater(this::applyMode);
 
         updateCyclesTitle();
-        resetDebugUIState(); // ודא שמצב דיבאג כבוי בתחילת הדרך
+        resetDebugUIState();
     }
 
-    // יקרא מה-AppController אחרי טעינה/הרחבה
+    // called from AppController after load/expand
     public void bindProgram(Sprogram program) {
         this.program = program;
         rebuildInputsFromProgram();
         updateCyclesTitle();
-        resetDebugUIState(); // בכל החלפת תכנית – נבטל דיבאג פעיל
+        resetDebugUIState();
     }
 
-    // --- מצב (EXECUTE/DEBUG) ---
+    // ---------- Mode ----------
     private String currentMode() {
         if (modeGroup == null || modeGroup.getSelectedToggle() == null) return "EXECUTE";
         Toggle t = modeGroup.getSelectedToggle();
@@ -123,12 +123,11 @@ public class RightBarController {
         return "EXECUTE";
     }
 
-    // תמה/זמינות כפתורים בכל מעבר מצב
     private void applyMode() {
         var scene = (btnStart != null) ? btnStart.getScene() : null;
         if (scene == null) return;
 
-        // תמת DEBUG (צהוב) – נוסיף תמיד לרשימת ה-CSS, אך השליטה נעשית ע״י class בשורש
+        // add debug theme sheet once
         if (debugCssUrl == null) {
             debugCssUrl = getClass()
                     .getResource("/semulator/userInterface/mainBar/theme-debug.css")
@@ -146,60 +145,57 @@ public class RightBarController {
             rootClasses.remove("debug-theme");
         }
 
-        // השבתת כל הכפתורים במצב DEBUG למעט Start/Stop/StepOver בימין + LoadButtonTB בטופ-בר
         if (debugMode) {
-            Set<String> allow = new HashSet<>();
-            allow.add("btnStart");
-            allow.add("btnStop");
-            allow.add("btnStepOver");
-            allow.add("LoadButtonTB");
+            // allowlist of buttons that should stay enabled in DEBUG
+            Set<String> allow = Set.of("btnStart", "btnStop", "btnStepOver", "LoadButtonTB");
 
             for (Node n : scene.getRoot().lookupAll(".button")) {
                 if (n instanceof ToggleButton tb) {
-                    // טוגלי מצב נשארים פעילים תמיד
+                    // mode toggles remain enabled always
                     if (modeGroup != null && modeGroup.getToggles().contains(tb)) {
-                        tb.setDisable(false);
+                        if (!tb.disableProperty().isBound()) tb.setDisable(false);
                         continue;
                     }
                 }
                 if (n instanceof Button b) {
                     String id = b.getId();
                     boolean allowed = (id != null && allow.contains(id));
-                    b.setDisable(!allowed);
+                    if (!b.disableProperty().isBound()) {
+                        b.setDisable(!allowed);
+                    }
                 }
             }
-            // זמינות פנימית (בימין)
-            if (!debugActive) { // לפני לחיצה על Start בדיבאג
-                if (btnStart    != null) btnStart.setDisable(false);
-                if (btnStop     != null) btnStop.setDisable(true);
-                if (btnStepOver != null) btnStepOver.setDisable(true);
-            } else {             // אחרי Start בדיבאג
-                if (btnStart    != null) btnStart.setDisable(true);
-                if (btnStop     != null) btnStop.setDisable(false);
-                if (btnStepOver != null) btnStepOver.setDisable(false);
+            if (!debugActive) {
+                if (btnStart    != null && !btnStart.disableProperty().isBound())    btnStart.setDisable(false);
+                if (btnStop     != null && !btnStop.disableProperty().isBound())     btnStop.setDisable(true);
+                if (btnStepOver != null && !btnStepOver.disableProperty().isBound()) btnStepOver.setDisable(true);
+            } else {
+                if (btnStart    != null && !btnStart.disableProperty().isBound())    btnStart.setDisable(true);
+                if (btnStop     != null && !btnStop.disableProperty().isBound())     btnStop.setDisable(false);
+                if (btnStepOver != null && !btnStepOver.disableProperty().isBound()) btnStepOver.setDisable(false);
             }
         } else {
-            // EXECUTE: שחרר הכל, ואז אמץ חוקים ל-EXECUTE
             for (Node n : scene.getRoot().lookupAll(".button")) {
-                if (n instanceof Button b) b.setDisable(false);
-                else if (n instanceof ToggleButton tb) tb.setDisable(false);
+                if (n instanceof Button b) {
+                    if (!b.disableProperty().isBound()) b.setDisable(false);
+                } else if (n instanceof ToggleButton tb) {
+                    if (!tb.disableProperty().isBound()) tb.setDisable(false);
+                }
             }
-            if (btnStop     != null) btnStop.setDisable(true);
-            if (btnStepOver != null) btnStepOver.setDisable(true);
-            if (btnStart    != null) btnStart.setDisable(false);
+            if (btnStop     != null && !btnStop.disableProperty().isBound())     btnStop.setDisable(true);
+            if (btnStepOver != null && !btnStepOver.disableProperty().isBound()) btnStepOver.setDisable(true);
+            if (btnStart    != null && !btnStart.disableProperty().isBound())    btnStart.setDisable(false);
             resetDebugUIState();
         }
     }
 
-    // --- בניית אזור קלטים דינאמי ---
+    // ---------- Inputs pane ----------
     private void rebuildInputsFromProgram() {
         inputFields.clear();
         inputOrder.clear();
-        inputsBox.getChildren().clear();
-
+        if (inputsBox != null) inputsBox.getChildren().clear();
         if (program == null) return;
 
-        // יוצר Executor חדש מהתכנית הנוכחית לקבלת סדר קלטים
         executor   = new ProgramExecutorImpl(program);
         inputOrder = executor.getInputLabelsNames();
         if (inputOrder == null) inputOrder = new ArrayList<>();
@@ -219,18 +215,17 @@ public class RightBarController {
 
             HBox row = new HBox(8, nameLbl, tf);
             row.getStyleClass().add("rightbar-input-row");
-            inputsBox.getChildren().add(row);
+            if (inputsBox != null) inputsBox.getChildren().add(row);
 
             inputFields.put(varName, tf);
         }
 
-        // נקה STATE
         if (varsBox != null) varsBox.getChildren().clear();
         if (lblVarsTitle != null) lblVarsTitle.setVisible(false);
         lastHighlightedVars = Collections.emptySet();
     }
 
-    // --- START: EXECUTE או DEBUG לפי מצב ---
+    // ---------- Start ----------
     private void onStartClicked() {
         if ("DEBUG".equalsIgnoreCase(currentMode())) {
             startDebug();
@@ -239,14 +234,13 @@ public class RightBarController {
         }
     }
 
-    // EXECUTE מלא
+    // EXECUTE
     private void startExecute() {
         if (executor == null || program == null) {
             showError("No program", "Please load a program first.");
             return;
         }
 
-        // קריאת קלטים
         List<Long> values = new ArrayList<>(inputOrder.size());
         String[] inputsSnapshot = new String[inputOrder.size()];
         for (int i = 0; i < inputOrder.size(); i++) {
@@ -268,7 +262,6 @@ public class RightBarController {
             values.add(val);
         }
 
-        // הרצה
         long result;
         try {
             Long[] arr = values.toArray(new Long[0]);
@@ -278,10 +271,11 @@ public class RightBarController {
             return;
         }
 
-        // הצגת STATE
         renderVariableState(executor.VariableState(), Collections.emptySet());
 
-        // היסטוריה (Start בלבד – לא ReRun)
+        // עדכון מיידי של התווית "Cycles" לאחר ריצה ב־EXECUTE
+        updateCyclesTitle();
+
         if (addToHistory && app != null) {
             RunRecord rec = new RunRecord();
             int runNo   = app.nextRunNumber();
@@ -302,10 +296,10 @@ public class RightBarController {
         }
 
         showInfo("Execution Completed", "Result (Y): " + result);
-        addToHistory = true; // להבא
+        addToHistory = true;
     }
 
-    // DEBUG – אתחול דיבאג + הרצת run(...) להגדרת הקלטים, הצגת טבלה עליונה, מצב כפתורים
+    // DEBUG
     private void startDebug() {
         if (program == null) {
             showError("No program", "Please load a program first.");
@@ -314,7 +308,6 @@ public class RightBarController {
 
         debugger = new ProgramDebuggerImple(program);
 
-        // לקרוא קלטים – כמו ב-EXECUTE (ברירת מחדל: 0)
         List<Long> values = new ArrayList<>(inputOrder.size());
         for (int i = 0; i < inputOrder.size(); i++) {
             String name = inputOrder.get(i);
@@ -335,70 +328,66 @@ public class RightBarController {
             values.add(val);
         }
 
-        // אתחול קונטקסט וקלטים בדיבאג
         Long[] arr = values.toArray(new Long[0]);
         debugger.run(arr);
 
-        // הצגת STATE ראשוני
         renderVariableState(debugger.VariableState(), Collections.emptySet());
 
-        // הדלקת דיבאג – כפתורים
         debugActive = true;
         applyMode();
 
-        // בקשה מהשמאלי להציג מייד את הטבלה העליונה (Show Program)
         if (app != null && app.getLeftBarController() != null) {
             app.getLeftBarController().showProgramNow();
         }
 
-        // ניקוי הדגשות קודמות
         lastHighlightedInstruction = -1;
         lastHighlightedVars = Collections.emptySet();
     }
 
-    // STEP OVER – מבצע צעד, מדגיש פקודה ומשתנים, ובודק סיום
+    // STEP OVER
     private void onStepOverClicked() {
         if (!"DEBUG".equalsIgnoreCase(currentMode()) || debugger == null) return;
 
         debugger.stepOver();
 
-        // הדגשת שורת פקודה בשמאל (לפי instructionIndex)
+        // חדש: לעדכן את כיתוב ה־Cycles בכל צעד DEBUG
+        updateCyclesTitle();
+
         int idx = debugger.getInstructionIndex();
         if (app != null && app.getLeftBarController() != null) {
             app.getLeftBarController().highlightInstructionByIndex(idx);
         }
         lastHighlightedInstruction = idx;
 
-        // הדגשת משתנה ששונה בצעד האחרון (אם יש)
         Set<String> hl = new LinkedHashSet<>();
-        Variable v1 = debugger.getLastVariableChange(); // ← כרגע רק ראשי (אם תרצה גם שני: הוסף API במחלקת הדיבאג)
+        Variable v1 = debugger.getLastVariableChange();
         if (v1 != null) hl.add(v1.getRepresentation());
 
         renderVariableState(debugger.VariableState(), hl);
         lastHighlightedVars = hl;
 
-        // בדיקת סיום – אם הסתיים, סוגרים/מוסיפים להיסטוריה/מודיעים
         if (debugger.isOver()) {
             finishDebugRun();
         }
     }
 
-    // STOP – מריץ צעדים עד סוף ואז מסיים כמו ב-StepOver סופי
+    // STOP -> run to end
     private void onStopClicked() {
         if (!"DEBUG".equalsIgnoreCase(currentMode()) || debugger == null) return;
         while (!debugger.isOver()) {
             debugger.stepOver();
         }
-        // עדכון תצוגה אחרון (למקרה שקרו שינויים בצעד האחרון)
         renderVariableState(debugger.VariableState(), Collections.emptySet());
+
+        // בסיום ריצה בדיבאג לעדכן גם כאן
+        updateCyclesTitle();
+
         finishDebugRun();
     }
 
-    // סיום דיבאג: היסטוריה + דיאלוג תוצאה + איפוס מצב כפתורים
     private void finishDebugRun() {
         long result = (debugger != null && debugger.getResult() != null) ? debugger.getResult() : 0L;
 
-        // הכנסת ריצה להיסטוריה (Start בדיבאג = ריצה חדשה)
         if (addToHistory && app != null) {
             RunRecord rec = new RunRecord();
             int runNo   = app.nextRunNumber();
@@ -406,7 +395,6 @@ public class RightBarController {
             long cycles = program.calculateCycle();
             var state   = debugger.VariableState();
 
-            // צילום קלטים טקסטואליים מהשדות (לנוחות ה-Show/Rerun)
             String[] inputsSnapshot = new String[inputOrder.size()];
             for (int i = 0; i < inputOrder.size(); i++) {
                 String name = inputOrder.get(i);
@@ -428,17 +416,15 @@ public class RightBarController {
 
         showInfo("Debug Finished", "Result (Y): " + result);
 
-        // איפוס דיבאג
         debugActive = false;
         debugger = null;
         lastHighlightedInstruction = -1;
         lastHighlightedVars = Collections.emptySet();
 
-        // כפתורים לפי מצב DEBUG (Start זמין, Stop/StepOver כבויים)
         applyMode();
     }
 
-    // SHOW – חלון עם פרטי הריצה מהרשומה הנבחרת
+    // SHOW run details
     private void onShowClicked() {
         RunRecord rec = (tblRunHistoryRight != null)
                 ? tblRunHistoryRight.getSelectionModel().getSelectedItem()
@@ -466,7 +452,7 @@ public class RightBarController {
         showInfo("Run Details", sb.toString());
     }
 
-    // RERUN – טוען ע״פ נתיב הרשומה, ממלא קלטים ומריץ Start ללא היסטוריה
+    // Re-run from selected record
     private void onRerunClicked() {
         if (app == null) return;
         RunRecord rec = (tblRunHistoryRight != null)
@@ -476,7 +462,6 @@ public class RightBarController {
         app.rerunRecord(rec);
     }
 
-    // מילוי קלטים מבחוץ (AppController לאחר טעינה מחדש)
     public void fillInputs(String[] inputs) {
         if (inputs == null || inputOrder == null) return;
         for (int i = 0; i < Math.min(inputs.length, inputOrder.size()); i++) {
@@ -485,14 +470,13 @@ public class RightBarController {
             if (tf != null) tf.setText(inputs[i]);
         }
     }
-    // טריגר ריצה ללא היסטוריה (עבור ReRun)
+
     public void triggerStartWithoutHistory() {
         this.addToHistory = false;
-        startExecute(); // ב-ReRun מריצים כ-Execute מלא
-        this.addToHistory = true; // חזרה לברירת מחדל
+        startExecute();
+        this.addToHistory = true;
     }
 
-    // הוספה לטבלת היסטוריה הימנית (נקרא מ-AppController.addRunRecord)
     public void addRunRecord(RunRecord rec) {
         runRows.add(rec);
         if (tblRunHistoryRight != null) {
@@ -501,7 +485,6 @@ public class RightBarController {
         }
     }
 
-    // ציור מצב משתנים – עם הדגשות (namesToHighlight)
     private void renderVariableState(Map<Variable, Long> state, Set<String> namesToHighlight) {
         if (varsBox == null) return;
 
@@ -530,7 +513,6 @@ public class RightBarController {
                 HBox row = new HBox(8, lName, spacer, lVal);
                 row.getStyleClass().add("rightbar-state-row");
 
-                // הדגשה אם נמצא ברשימת ההדגשה
                 if (namesToHighlight != null && namesToHighlight.contains(name)) {
                     row.getStyleClass().add("state-changed");
                 }
@@ -541,17 +523,17 @@ public class RightBarController {
         });
     }
 
-    // עדכון כותרת Cycles
     private void updateCyclesTitle() {
         int total = (program != null) ? program.calculateCycle() : 0;
         if (lblCycles != null) lblCycles.setText("Cycles: " + total);
     }
 
-    // אפקט הבזק קטן (UI בלבד)
-    private void wireFlash(Button b) {
+    // add flash without overriding existing onAction
+    private void attachFlash(Button b) {
         if (b == null) return;
-        b.setOnAction(e -> { flash(b); /* לוגיקת הפעולה נקשרת ידנית במתודות */ });
+        b.addEventHandler(ActionEvent.ACTION, e -> flash(b));
     }
+
     private void flash(Node n) {
         if (n == null) return;
         if (!n.getStyleClass().contains("flash-active")) n.getStyleClass().add("flash-active");
@@ -560,7 +542,7 @@ public class RightBarController {
         pt.play();
     }
 
-    // דיאלוגים מעוצבים
+    // dialogs
     private void showError(String header, String content) {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.setTitle("Error"); a.setHeaderText(header); a.setContentText(content);
@@ -580,17 +562,16 @@ public class RightBarController {
         } catch (Exception ignore) { }
     }
 
-    // איפוס מצב דיבאג (כפתורים/דגלים)
     private void resetDebugUIState() {
         debugActive = false;
         debugger = null;
         lastHighlightedInstruction = -1;
         lastHighlightedVars = Collections.emptySet();
-        if (btnStop     != null) btnStop.setDisable(true);
-        if (btnStepOver != null) btnStepOver.setDisable(true);
-        if (btnStart    != null) btnStart.setDisable(false);
+        if (btnStop     != null && !btnStop.disableProperty().isBound())     btnStop.setDisable(true);
+        if (btnStepOver != null && !btnStepOver.disableProperty().isBound()) btnStepOver.setDisable(true);
+        if (btnStart    != null && !btnStart.disableProperty().isBound())    btnStart.setDisable(false);
     }
 
-    // ---- עזר קטן (ל־CSS) ----
+    // shim (avoid import name clash w/ Region)
     private static class Region extends javafx.scene.layout.Region {}
 }
